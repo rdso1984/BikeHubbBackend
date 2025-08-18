@@ -43,11 +43,15 @@ public class StripeService {
             Advertisement advertisement = advertisementRepository.findById(paymentRequest.getAdvertisementId())
                 .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
 
-                //Criar metadata para o pagamento
-            Map<String, String> metadata = Map.of(
-                "advertisement_id", advertisement.getId().toString(),
-                "user_id", advertisement.getOwner().getId().toString()
-            );
+            // Criar parâmetros para o PaymentIntent
+            PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
+                .setAmount(convertToCents(paymentRequest.getAmount()))
+                .setCurrency(paymentRequest.getCurrency().toLowerCase());
+
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("advertisement_id", advertisement.getId().toString());
+            metadata.put("user_id", advertisement.getOwner().getId().toString());
+            paramsBuilder.putAllMetadata(metadata);
 
             //Criar payment intent no Stripe
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
