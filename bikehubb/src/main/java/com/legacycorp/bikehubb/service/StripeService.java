@@ -2,6 +2,7 @@ package com.legacycorp.bikehubb.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cglib.core.Local;
@@ -12,14 +13,19 @@ import com.legacycorp.bikehubb.dto.PaymentResponse;
 import com.legacycorp.bikehubb.exception.StripePaymentException;
 import com.legacycorp.bikehubb.exception.StripeWebhookException;
 import com.legacycorp.bikehubb.model.Advertisement;
+import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.model.Advertisement.AdvertisementStatus;
+import com.legacycorp.bikehubb.repository.AdvertisementRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentMethodAttachParams;
 
 @Service
 public class StripeService {
@@ -102,6 +108,8 @@ public class StripeService {
 
                 advertisement.setStatus(AdvertisementStatus.PUBLISHED);
                 advertisement.setPublishedAt(LocalDateTime.now());
+                advertisement.setPaymentIntentId(paymentIntentId);
+                advertisement.setPaymentDate(LocalDateTime.now());
                 advertisementRepository.save(advertisement);
     }
 
@@ -127,6 +135,70 @@ public class StripeService {
                 "Falha no processamento do webhook",
                 e
             );
+        }
+    }
+
+    // Adicione esses métodos ao StripeService
+    public String createStripeCustomer(User user) throws StripeException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", user.getEmail());
+        params.put("name", user.getName());
+        params.put("phone", user.getPhone());
+        
+        Customer customer = Customer.create(params);
+        return customer.getId();
+    }
+
+    public void attachPaymentMethodToCustomer(String customerId, String paymentMethodId) throws StripeException {
+        PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId);
+        paymentMethod.attach(new PaymentMethodAttachParams.Builder()
+                .setCustomer(customerId)
+                .build());
+    }
+
+    public void handlePaymentFailure(String paymentIntentId) throws StripeException {
+        PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+        
+        String advertisementId = paymentIntent.getMetadata().get("advertisement_id");
+        Advertisement advertisement = advertisementRepository.findById(Long.parseLong(advertisementId))
+                .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
+        
+        // Mantém como PENDING_PAYMENT para permitir nova tentativa
+        // ou pode mudar para FAILED conforme sua regra de negócio
+        advertisement.setStatus(AdvertisementStatus.PENDING_PAYMENT);
+        advertisement.setPaymentIntentId(null); // Remove o payment intent falho
+        advertisementRepository.save(advertisement);
+        
+        // Aqui você pode adicionar lógica para:
+        // - Notificar o usuário sobre a falha
+        // - Registrar a tentativa falha
+        // - Enviar alertas para a equipe
+    }
+
+    /**
+     * Método para verificar o status de um pagamento
+     */
+    public PaymentIntent checkPaymentStatus(String paymentIntentId) throws StripeException {
+        return PaymentIntent.retrieve(paymentIntentId);
+    }
+
+    /**
+     * Método para cancelar um pagamento pendente
+     */
+    public void cancelPendingPayment(String paymentIntentId) throws StripeException {
+        PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+        
+        // Só cancela se ainda estiver em estado cancelável
+        if ("requires_payment_method".equals(paymentIntent.getStatus())) {
+            PaymentIntent canceledIntent = paymentIntent.cancel();
+            
+            String advertisementId = canceledIntent.getMetadata().get("advertisement_id");
+            Advertisement advertisement = advertisementRepository.findById(Long.parseLong(advertisementId))
+                    .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
+            
+            advertisement.setStatus(AdvertisementStatus.DRAFT);
+            advertisement.setPaymentIntentId(null);
+            advertisementRepository.save(advertisement);
         }
     }
 
