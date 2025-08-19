@@ -2,7 +2,7 @@ package com.legacycorp.bikehubb.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import com.legacycorp.bikehubb.model.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,6 +38,8 @@ public class Advertisement {
 
     private LocalDateTime createdAt;
     private LocalDateTime publishedAt;
+        private String paymentIntentId;
+        private LocalDateTime paymentDate;
 
     public enum AdvertisementStatus {
         DRAFT,
@@ -46,4 +48,12 @@ public class Advertisement {
         REJECTED,
         EXPIRED
     }
+
+        public void setPaymentIntentId(String paymentIntentId) {
+            this.paymentIntentId = paymentIntentId;
+        }
+
+        public void setPaymentDate(LocalDateTime paymentDate) {
+            this.paymentDate = paymentDate;
+        }
 }

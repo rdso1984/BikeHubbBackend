@@ -31,6 +31,8 @@ import com.stripe.param.PaymentMethodAttachParams;
 public class StripeService {
 
     private final AdvertisementRepository advertisementRepository;
+        // Defina o webhookSecret (idealmente via configuração)
+        private final String webhookSecret = "SUA_CHAVE_WEBHOOK_AQUI"; // Substitua pelo valor real
 
     public StripeService(AdvertisementRepository advertisementRepository) {
         this.advertisementRepository = advertisementRepository;
@@ -44,34 +46,36 @@ public class StripeService {
                 .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
 
             // Criar parâmetros para o PaymentIntent
-            PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
-                .setAmount(convertToCents(paymentRequest.getAmount()))
-                .setCurrency(paymentRequest.getCurrency().toLowerCase());
+                Map<String, String> metadata = new HashMap<>();
+                metadata.put("advertisement_id", advertisement.getId().toString());
+                // Corrigir para pegar o id do User corretamente
+                if (advertisement.getOwner() != null && advertisement.getOwner().getId() != null) {
+                    metadata.put("user_id", advertisement.getOwner().getId().toString());
+                }
 
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put("advertisement_id", advertisement.getId().toString());
-            metadata.put("user_id", advertisement.getOwner().getId().toString());
-            paramsBuilder.putAllMetadata(metadata);
-
-            //Criar payment intent no Stripe
-            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(convertToCents(paymentRequest.getAmount()))
                     .setCurrency(paymentRequest.getCurrency().toLowerCase())
-                    .setMetadata(metadata)
+                    .putAllMetadata(metadata)
+                    .setAutomaticPaymentMethods(
+                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                            .setEnabled(true)
+                            .build()
+                    )
                     .build();
 
-            PaymentIntent paymentIntent = PaymentIntent.create(params);
+                PaymentIntent paymentIntent = PaymentIntent.create(params);
 
-            //Atualizar status do anuncio
+            // Atualizar status do anúncio
             advertisement.setStatus(AdvertisementStatus.PENDING_PAYMENT);
+            advertisement.setPaymentIntentId(paymentIntent.getId());
             advertisementRepository.save(advertisement);
 
-            //Retornar resposta
-            PaymentResponse response = new PaymentResponse();
-            response.setClientSecret(paymentIntent.getClientSecret());
-            response.setPaymentIntentId(paymentIntent.getId());
-
-            return response;
+            // Retornar resposta
+            return new PaymentResponse(
+                paymentIntent.getClientSecret(),
+                paymentIntent.getId()
+            );
 
         } catch (StripeException e) {
             String userMessage = "Erro ao processar pagamento. Por favor, tente novamente.";

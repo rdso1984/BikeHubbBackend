@@ -9,7 +9,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import lombok.Data;
 
 @ControllerAdvice
-@Data
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(StripeException.class)
@@ -44,6 +43,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 }
 
 // Classe auxiliar para a resposta de erro
+@Data
 class ErrorResponse {
     private String code;
     private String message;

@@ -25,7 +25,7 @@ public class StripeWebhookService {
         return Webhook.constructEvent(payload, sigHeader, webhookSecret);
     }
 
-    public void handleEvent(Event event) throws StripeException {
+    public void handleEvent(Event event) throws com.stripe.exception.StripeException {
         switch (event.getType()) {
             case "payment_intent.succeeded":
                 handlePaymentIntentSucceeded(event);
@@ -42,13 +42,13 @@ public class StripeWebhookService {
         }
     }
 
-    private void handlePaymentIntentSucceeded(Event event) throws StripeException {
+    private void handlePaymentIntentSucceeded(Event event) throws StripeException, com.stripe.exception.StripeException {
 
         PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject()
             .orElseThrow(
-                new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
+                () -> new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
 
-                stripeService.handlePaymentSuccess(paymentIntent.getId());
+        stripeService.handlePaymentSuccess(paymentIntent.getId());
     
         // String paymentIntentId = event.getData().getObject().getId();
         // Lógica para atualizar o status do anúncio para publicado
@@ -56,18 +56,19 @@ public class StripeWebhookService {
 
     }
 
-    private void handlePaymentIntentFailed(Event event) throws StripeException {
-        PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElseThrow(
-                () new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
-        
+    private void handlePaymentIntentFailed(Event event) throws StripeException, com.stripe.exception.StripeException {
+        PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject()
+            .orElseThrow(
+                () -> new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
+
         stripeService.handlePaymentFailure(paymentIntent.getId());
         
         // Aqui você pode adicionar notificações ou lógica adicional
     }
 
-    private void handlePaymentIntentCanceled(Event event) throws StripeException {
+    private void handlePaymentIntentCanceled(Event event) throws StripeException, com.stripe.exception.StripeException {
         PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElseThrow(
-                () new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
+                () -> new IllegalArgumentException("Objeto PaymentIntent não encontrado no evento"));
         
         // Trata cancelamento similar à falha (ou pode ter lógica diferente)
         stripeService.handlePaymentFailure(paymentIntent.getId());
