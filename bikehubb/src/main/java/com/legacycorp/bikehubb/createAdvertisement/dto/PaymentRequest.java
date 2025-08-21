@@ -1,4 +1,4 @@
-package com.legacycorp.bikehubb.dto;
+package com.legacycorp.bikehubb.createAdvertisement.dto;
 
 import java.math.BigDecimal;
 

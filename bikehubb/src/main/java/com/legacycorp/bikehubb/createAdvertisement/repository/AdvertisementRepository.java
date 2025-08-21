@@ -1,4 +1,4 @@
-package com.legacycorp.bikehubb.repository;
+package com.legacycorp.bikehubb.createAdvertisement.repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package com.legacycorp.bikehubb.controller;
+package com.legacycorp.bikehubb.createAdvertisement.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.legacycorp.bikehubb.dto.PaymentRequest;
-import com.legacycorp.bikehubb.dto.PaymentResponse;
+import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentRequest;
+import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentResponse;
 import com.legacycorp.bikehubb.service.StripeService;
 import com.legacycorp.bikehubb.service.StripeWebhookService;
 import com.stripe.exception.SignatureVerificationException;

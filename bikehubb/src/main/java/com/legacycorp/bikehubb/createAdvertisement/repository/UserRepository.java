@@ -1,4 +1,4 @@
-package com.legacycorp.bikehubb.repository;
+package com.legacycorp.bikehubb.createAdvertisement.repository;
 
 import java.util.List;
 import java.util.Optional;

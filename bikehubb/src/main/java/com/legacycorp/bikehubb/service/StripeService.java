@@ -8,14 +8,14 @@ import java.util.Map;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
-import com.legacycorp.bikehubb.dto.PaymentRequest;
-import com.legacycorp.bikehubb.dto.PaymentResponse;
+import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentRequest;
+import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentResponse;
+import com.legacycorp.bikehubb.createAdvertisement.repository.AdvertisementRepository;
 import com.legacycorp.bikehubb.exception.StripePaymentException;
 import com.legacycorp.bikehubb.exception.StripeWebhookException;
 import com.legacycorp.bikehubb.model.Advertisement;
 import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.model.Advertisement.AdvertisementStatus;
-import com.legacycorp.bikehubb.repository.AdvertisementRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
