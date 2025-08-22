@@ -3,6 +3,8 @@ package com.legacycorp.bikehubb.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,6 +29,10 @@ public class User {
 
     @Column(nullable = false)
     private boolean active = true;
+    
+    // Campo para mapear UUID do JWT/autenticação externa
+    @Column(unique = true)
+    private String externalId; // UUID do sistema de autenticação
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Advertisement> advertisements = new ArrayList<Advertisement>();

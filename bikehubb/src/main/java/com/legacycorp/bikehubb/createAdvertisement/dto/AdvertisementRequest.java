@@ -7,8 +7,7 @@ import lombok.Data;
 @Data
 public class AdvertisementRequest {
 
-    // private Long id;
-    // private Long userId;
+    // userId será extraído do token JWT, não do formulário
     private String title;
     private String description;
     private Double price;

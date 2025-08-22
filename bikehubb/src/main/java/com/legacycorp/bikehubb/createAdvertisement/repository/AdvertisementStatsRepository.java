@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import com.legacycorp.bikehubb.model.Advertisement;
+import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
+
 
 public interface AdvertisementStatsRepository extends Repository<Advertisement, Long> {
 

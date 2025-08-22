@@ -17,6 +17,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:4200") // Adicione as URLs do seu frontend
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("Authorization") // Expor o header Authorization
                 .allowCredentials(true)
                 .maxAge(3600);
     }

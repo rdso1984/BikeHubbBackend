@@ -16,6 +16,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    
+    // Buscar usuário pelo UUID externo (JWT)
+    Optional<User> findByExternalId(String externalId);
 
     // Exemplo de método para listar todos os usuários
     List<User> findAll();
