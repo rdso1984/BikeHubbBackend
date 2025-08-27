@@ -1,15 +1,17 @@
 # Multi-stage build otimizado para Render
-FROM eclipse-temurin:21-jdk-alpine as builder
+FROM openjdk:21-jdk-slim as builder
 
 WORKDIR /app
-COPY . .
+COPY bikehubb/ .
 RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests -Dspring.profiles.active=render
 
-FROM eclipse-temurin:21-jre-alpine
+FROM openjdk:21-jre-slim
 
 # Instalar ferramentas essenciais
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -17,7 +19,7 @@ WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
 # Criar usuário não-root para segurança
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup --system spring && adduser --system spring --ingroup spring
 RUN chown spring:spring app.jar
 USER spring:spring
 
