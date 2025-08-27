@@ -1,0 +1,4 @@
+Dockerfile.flyio
+fly.toml
+deploy-flyio.*
+.dockerignore
