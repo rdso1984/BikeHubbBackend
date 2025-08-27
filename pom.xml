@@ -81,6 +81,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Spring Boot Actuator para health checks do Fly.io -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		 <!-- Stripe Java SDK -->
 		<dependency>
 			<groupId>com.stripe</groupId>

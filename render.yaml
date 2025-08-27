@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: bikehubb
+    runtime: java
+    buildCommand: ./mvnw clean package -DskipTests -Dspring.profiles.active=render
+    startCommand: java -Dserver.port=$PORT -jar target/bikehubb-0.0.1-SNAPSHOT.jar --spring.profiles.active=render
+    plan: free
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SUPABASE_PASSWORD
+        value: Weboito8@Websete7@
+      - key: PORT
+        value: 8080
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    regions:
+      - oregon # Região mais próxima do Brasil disponível
