@@ -74,17 +74,11 @@
 			<version>42.7.5</version>
 		</dependency>
 
-		<!-- H2 Database para desenvolvimento local -->
+		<!-- H2 Database para desenvolvimento -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-
-		<!-- Spring Boot Actuator para health checks do Fly.io -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
 		 <!-- Stripe Java SDK -->
