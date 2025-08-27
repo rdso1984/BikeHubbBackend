@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bikehubb-api
+    env: java
+    plan: free
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: chmod +x start.sh && ./start.sh
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: DATABASE_URL
+        value: jdbc:postgresql://db.krlhnihkslmmihprkwqm.supabase.co:6543/postgres?sslmode=require&preferQueryMode=simple&rewriteBatchedInserts=true&connectTimeout=30&socketTimeout=60&prepareThreshold=0
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        value: Weboito8@Websete7@
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+      - key: STRIPE_PUBLISHABLE_KEY
+        value: pk_test_TYooMQauy1zV0N0rQ8y5K5cQ
+      - key: STRIPE_WEBHOOK_SECRET
+        value: whsec_test_4eC39HqLyjWDarjtT1zdp7dc
+      - key: PORT
+        value: 8080
