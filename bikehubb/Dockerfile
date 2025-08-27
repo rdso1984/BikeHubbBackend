@@ -1,10 +1,14 @@
 # Multi-stage build otimizado para Render
 FROM eclipse-temurin:21-jdk-alpine as builder
 
+# Instalar Maven
+RUN apk add --no-cache maven
+
 WORKDIR /app
 COPY . .
-RUN chmod +x ./mvnw
-RUN ./mvnw clean package -DskipTests -Dspring.profiles.active=render
+
+# Build da aplicação usando Maven diretamente
+RUN mvn clean package -DskipTests -Dspring.profiles.active=render
 
 FROM eclipse-temurin:21-jre-alpine
 
