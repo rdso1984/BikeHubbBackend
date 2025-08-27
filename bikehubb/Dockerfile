@@ -1,0 +1,33 @@
+# Multi-stage build otimizado para Render
+FROM openjdk:21-jdk-slim as builder
+
+WORKDIR /app
+COPY . .
+RUN chmod +x ./mvnw
+RUN ./mvnw clean package -DskipTests -Dspring.profiles.active=render
+
+FROM openjdk:21-jre-slim
+
+# Instalar ferramentas essenciais
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copiar JAR otimizado
+COPY --from=builder /app/target/*.jar app.jar
+
+# Criar usuário não-root para segurança
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+RUN chown spring:spring app.jar
+USER spring:spring
+
+# Configurar JVM para Render
+ENV JAVA_OPTS="-Xmx400m -Xms200m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+# Expor porta
+EXPOSE 8080
+
+# Comando otimizado para Render
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=render"]
