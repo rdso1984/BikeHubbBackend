@@ -2,10 +2,11 @@ services:
   - type: web
     name: bikehubb-api
     env: java
-    plan: free
     runtime: java
+    plan: free
     buildCommand: ./mvnw clean package -DskipTests
     startCommand: java -jar target/bikehubb-*.jar --spring.profiles.active=render
+    buildpack: heroku/java
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
