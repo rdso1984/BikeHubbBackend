@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,11 +19,11 @@ import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement.AdvertisementStatus;
 
 @Repository
-public interface AdvertisementRepository extends JpaRepository<Advertisement, Long> {
+public interface AdvertisementRepository extends JpaRepository<Advertisement, UUID> {
 
     // Busca básica por ID incluindo o dono do anúncio
     @Query("SELECT a FROM Advertisement a JOIN FETCH a.owner WHERE a.id = :id")
-    Optional<Advertisement> findByIdWithOwner(@Param("id") Long id);
+    Optional<Advertisement> findByIdWithOwner(@Param("id") UUID id);
 
     // Busca anúncios por status com paginação
     Page<Advertisement> findByStatus(AdvertisementStatus status, Pageable pageable);
@@ -47,7 +48,7 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, Lo
     // Atualiza o status de um anúncio
     @Modifying
     @Query("UPDATE Advertisement a SET a.status = :status WHERE a.id = :id")
-    int updateStatus(@Param("id") Long id, @Param("status") AdvertisementStatus status);
+    int updateStatus(@Param("id") UUID id, @Param("status") AdvertisementStatus status);
 
     // Busca anúncios que estão pendentes de pagamento há mais de X horas
     @Query("SELECT a FROM Advertisement a WHERE a.status = 'PENDING_PAYMENT' AND a.createdAt < :threshold")
@@ -69,5 +70,5 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, Lo
     long countByStatus(AdvertisementStatus status);
 
     // Verifica se um usuário é dono de um anúncio específico
-    boolean existsByIdAndOwner(Long id, User owner);
+    boolean existsByIdAndOwner(UUID id, User owner);
 }

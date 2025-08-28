@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,17 @@ public class AdvertisementService {
         // Buscar o usuário pelo UUID externo primeiro
         User user = userRepository.findByExternalId(userId)
             .orElseGet(() -> {
-                // Se não encontrar pelo externalId, tentar pelo ID numérico como fallback
+                // Se não encontrar pelo externalId, tentar pelo ID UUID como fallback
                 try {
-                    Long userIdLong = Long.valueOf(userId);
-                    return userRepository.findById(userIdLong)
+                    UUID userIdUUID = UUID.fromString(userId);
+                    return userRepository.findById(userIdUUID)
                         .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-                } catch (NumberFormatException e) {
-                    throw new RuntimeException("Usuário não encontrado para UUID: " + userId);
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("Usuário não encontrado para ID: " + userId);
                 }
             });
 
-        System.out.println("Usuário encontrado: " + user.getName() + " (ID: " + user.getId() + ", ExternalId: " + user.getExternalId() + ")");
+        System.out.println("Usuário encontrado: " + user.getNome() + " (ID: " + user.getId() + ", ExternalId: " + user.getExternalId() + ")");
 
         // Criar novo anúncio
         Advertisement advertisement = new Advertisement();
@@ -65,21 +66,28 @@ public class AdvertisementService {
         advertisement.setActive(request.isActive());
         advertisement.setPaid(request.isPaid());
         advertisement.setStatus(AdvertisementStatus.DRAFT);
-        advertisement.setOwner(user);
+        UUID userIdUUID = UUID.fromString(userId);
+        advertisement.setOwner(userIdUUID);
         advertisement.setCreatedAt(LocalDateTime.now());
 
         // Salvar no banco
-        Advertisement savedAdvertisement = advertisementRepository.save(advertisement);
-
-        // Processar imagens se existirem
-        if (request.getImages() != null && request.getImages().length > 0) {
-            processImages(request.getImages(), savedAdvertisement.getId());
+        try {
+            Advertisement savedAdvertisement = advertisementRepository.save(advertisement);
+            System.out.println("Anúncio salvo com sucesso. ID: " + savedAdvertisement.getId() + ", Owner ID: " + savedAdvertisement.getOwnerId());
+            
+            // Processar imagens se existirem
+            if (request.getImages() != null && request.getImages().length > 0) {
+                processImages(request.getImages(), savedAdvertisement.getId());
+            }
+            
+            return savedAdvertisement;
+        } catch (Exception e) {
+            System.err.println("Erro ao salvar anúncio: " + e.getMessage());
+            throw new RuntimeException("Erro ao salvar anúncio: " + e.getMessage(), e);
         }
-
-        return savedAdvertisement;
     }
 
-    private void processImages(MultipartFile[] images, Long advertisementId) {
+    private void processImages(MultipartFile[] images, UUID advertisementId) {
         // TODO: Implementar upload das imagens
         // Aqui você pode:
         // 1. Salvar as imagens no sistema de arquivos ou cloud storage
@@ -99,7 +107,7 @@ public class AdvertisementService {
         return advertisementRepository.findAll();
     }
 
-    public Advertisement getAdvertisementById(Long id) {
+    public Advertisement getAdvertisementById(UUID id) {
         return advertisementRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
     }

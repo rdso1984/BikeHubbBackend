@@ -1,30 +1,28 @@
 package com.legacycorp.bikehubb.createAdvertisement.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.math.BigDecimal;
 
-import com.legacycorp.bikehubb.model.User;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "advertisements")
+@Table(name = "bicycles")
 @Data
 public class Advertisement {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     private String title;
     private String description;
@@ -45,19 +43,28 @@ public class Advertisement {
     private String neighborhood;
     
     // Campos de status
+    @Column(name = "is_active")
     private boolean isActive = true;
+    
+    @Column(name = "is_paid")
     private boolean isPaid = false;
 
     @Enumerated(EnumType.STRING)
-    private AdvertisementStatus status;
+    private AdvertisementStatus status = AdvertisementStatus.DRAFT;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User owner;
+    @Column(name = "user_id", nullable = true) // Temporariamente nullable para resolver problemas de migração
+    private UUID owner;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+    
+    @Column(name = "published_at")
     private LocalDateTime publishedAt;
+    
+    @Column(name = "payment_intent_id")
     private String paymentIntentId;
+    
+    @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
     public enum AdvertisementStatus {
@@ -74,5 +81,27 @@ public class Advertisement {
 
     public void setPaymentDate(LocalDateTime paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
+    // Método auxiliar para definir o owner por ID
+    public void setOwnerId(UUID userId) {
+        this.owner = userId;
+    }
+
+    // Método auxiliar para obter o ID do owner
+    public String getOwnerId() {
+        return this.owner != null ? this.owner.toString() : null;
+    }
+
+    // Método auxiliar para obter UUID do anúncio como String
+    public String getIdAsString() {
+        return this.id != null ? this.id.toString() : null;
     }
 }

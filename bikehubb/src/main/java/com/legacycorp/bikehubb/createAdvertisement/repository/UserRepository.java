@@ -2,6 +2,7 @@ package com.legacycorp.bikehubb.createAdvertisement.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.legacycorp.bikehubb.model.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Aqui você pode adicionar métodos específicos para o UserRepository, se necessário.
     // Por exemplo, busca por email, nome, etc.
