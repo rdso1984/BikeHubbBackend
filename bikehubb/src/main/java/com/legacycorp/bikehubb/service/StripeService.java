@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentRequest;
 import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentResponse;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement.AdvertisementStatus;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle.AdvertisementStatus;
 import com.legacycorp.bikehubb.createAdvertisement.repository.AdvertisementRepository;
 import com.legacycorp.bikehubb.exception.StripePaymentException;
 import com.legacycorp.bikehubb.exception.StripeWebhookException;

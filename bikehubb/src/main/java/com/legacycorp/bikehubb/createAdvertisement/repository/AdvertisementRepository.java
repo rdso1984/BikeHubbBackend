@@ -14,32 +14,32 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
 import com.legacycorp.bikehubb.model.User;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement.AdvertisementStatus;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle.AdvertisementStatus;
 
 @Repository
-public interface AdvertisementRepository extends JpaRepository<Advertisement, UUID> {
+public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
 
     // Busca básica por ID incluindo o dono do anúncio
     @Query("SELECT a FROM Advertisement a JOIN FETCH a.owner WHERE a.id = :id")
-    Optional<Advertisement> findByIdWithOwner(@Param("id") UUID id);
+    Optional<Bicycle> findByIdWithOwner(@Param("id") UUID id);
 
     // Busca anúncios por status com paginação
-    Page<Advertisement> findByStatus(AdvertisementStatus status, Pageable pageable);
+    Page<Bicycle> findByStatus(AdvertisementStatus status, Pageable pageable);
 
     // Busca anúncios por usuário
-    List<Advertisement> findByOwner(User owner);
+    List<Bicycle> findByOwner(User owner);
 
     // Busca anúncios por categoria (bike ou part)
-    Page<Advertisement> findByCategoryAndStatus(String category, AdvertisementStatus status, Pageable pageable);
+    Page<Bicycle> findByCategoryAndStatus(String category, AdvertisementStatus status, Pageable pageable);
 
     // Busca anúncios publicados após uma determinada data
-    List<Advertisement> findByStatusAndPublishedAtAfter(AdvertisementStatus status, LocalDateTime publishedAfter);
+    List<Bicycle> findByStatusAndPublishedAtAfter(AdvertisementStatus status, LocalDateTime publishedAfter);
 
     // Busca anúncios por intervalo de preço
     @Query("SELECT a FROM Advertisement a WHERE a.status = :status AND a.price BETWEEN :minPrice AND :maxPrice")
-    Page<Advertisement> findByPriceRange(
+    Page<Bicycle> findByPriceRange(
             @Param("status") AdvertisementStatus status,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice,
@@ -52,7 +52,7 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, UU
 
     // Busca anúncios que estão pendentes de pagamento há mais de X horas
     @Query("SELECT a FROM Advertisement a WHERE a.status = 'PENDING_PAYMENT' AND a.createdAt < :threshold")
-    List<Advertisement> findExpiredPendingPayments(@Param("threshold") LocalDateTime threshold);
+    List<Bicycle> findExpiredPendingPayments(@Param("threshold") LocalDateTime threshold);
 
     // Busca anúncios com filtros combinados (para busca avançada)
     @Query("SELECT a FROM Advertisement a WHERE " +
@@ -60,7 +60,7 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, UU
            "(:minPrice IS NULL OR a.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR a.price <= :maxPrice) AND " +
            "a.status = 'PUBLISHED'")
-    Page<Advertisement> searchPublishedAdvertisements(
+    Page<Bicycle> searchPublishedAdvertisements(
             @Param("category") String category,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice,
