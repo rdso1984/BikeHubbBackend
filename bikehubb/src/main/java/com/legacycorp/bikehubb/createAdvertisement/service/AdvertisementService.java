@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.legacycorp.bikehubb.createAdvertisement.dto.AdvertisementRequest;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement.AdvertisementStatus;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle.AdvertisementStatus;
 import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.createAdvertisement.repository.AdvertisementRepository;
 import com.legacycorp.bikehubb.createAdvertisement.repository.UserRepository;
@@ -26,7 +26,7 @@ public class AdvertisementService {
     @Autowired
     private UserRepository userRepository;
 
-    public Advertisement createAdvertisement(AdvertisementRequest request, String userId) {
+    public Bicycle createAdvertisement(AdvertisementRequest request, String userId) {
         // Buscar o usuário pelo UUID externo primeiro
         User user = userRepository.findByExternalId(userId)
             .orElseGet(() -> {
@@ -43,36 +43,36 @@ public class AdvertisementService {
         System.out.println("Usuário encontrado: " + user.getNome() + " (ID: " + user.getId() + ", ExternalId: " + user.getExternalId() + ")");
 
         // Criar novo anúncio
-        Advertisement advertisement = new Advertisement();
-        advertisement.setTitle(request.getTitle());
-        advertisement.setDescription(request.getDescription());
-        advertisement.setPrice(BigDecimal.valueOf(request.getPrice()));
-        advertisement.setCategory(request.getCategory());
+        Bicycle bicycle = new Bicycle();
+        bicycle.setTitle(request.getTitle());
+        bicycle.setDescription(request.getDescription());
+        bicycle.setPrice(BigDecimal.valueOf(request.getPrice()));
+        bicycle.setCategory(request.getCategory());
         
         // Campos específicos da bicicleta
-        advertisement.setBrand(request.getBrand());
-        advertisement.setModel(request.getModel());
-        advertisement.setYear(request.getYear());
-        advertisement.setCondition(request.getCondition());
-        advertisement.setFrameSize(request.getFrameSize());
-        advertisement.setColor(request.getColor());
+        bicycle.setBrand(request.getBrand());
+        bicycle.setModel(request.getModel());
+        bicycle.setYear(request.getYear());
+        bicycle.setCondition(request.getCondition());
+        bicycle.setFrameSize(request.getFrameSize());
+        bicycle.setColor(request.getColor());
         
         // Localização
-        advertisement.setCity(request.getCity());
-        advertisement.setState(request.getState());
-        advertisement.setNeighborhood(request.getNeighborhood());
+        bicycle.setCity(request.getCity());
+        bicycle.setState(request.getState());
+        bicycle.setNeighborhood(request.getNeighborhood());
         
         // Status
-        advertisement.setActive(request.isActive());
-        advertisement.setPaid(request.isPaid());
-        advertisement.setStatus(AdvertisementStatus.DRAFT);
+        bicycle.setActive(request.isActive());
+        bicycle.setPaid(request.isPaid());
+        bicycle.setStatus(AdvertisementStatus.DRAFT);
         UUID userIdUUID = UUID.fromString(userId);
-        advertisement.setOwner(userIdUUID);
-        advertisement.setCreatedAt(LocalDateTime.now());
+        bicycle.setOwner(userIdUUID);
+        bicycle.setCreatedAt(LocalDateTime.now());
 
         // Salvar no banco
         try {
-            Advertisement savedAdvertisement = advertisementRepository.save(advertisement);
+            Bicycle savedAdvertisement = advertisementRepository.save(bicycle);
             System.out.println("Anúncio salvo com sucesso. ID: " + savedAdvertisement.getId() + ", Owner ID: " + savedAdvertisement.getOwnerId());
             
             // Processar imagens se existirem
@@ -103,11 +103,11 @@ public class AdvertisementService {
             });
     }
 
-    public List<Advertisement> getAllAdvertisements() {
+    public List<Bicycle> getAllAdvertisements() {
         return advertisementRepository.findAll();
     }
 
-    public Advertisement getAdvertisementById(UUID id) {
+    public Bicycle getAdvertisementById(UUID id) {
         return advertisementRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
     }

@@ -2,7 +2,7 @@ package com.legacycorp.bikehubb.createAdvertisement.controller;
 
 import com.legacycorp.bikehubb.createAdvertisement.dto.AdvertisementRequest;
 import com.legacycorp.bikehubb.createAdvertisement.service.AdvertisementService;
-import com.legacycorp.bikehubb.createAdvertisement.model.Advertisement;
+import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
 import com.legacycorp.bikehubb.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,7 @@ public class AdvertisementController {
                 return ResponseEntity.status(401).body(Map.of("error", "Token inválido ou expirado"));
             }
             
-            Advertisement advertisement = advertisementService.createAdvertisement(request, userId);
+            Bicycle advertisement = advertisementService.createAdvertisement(request, userId);
             
             return ResponseEntity.ok(Map.of("message", "Anúncio criado com sucesso!", "id", advertisement.getId().toString()));
             
@@ -77,9 +77,9 @@ public class AdvertisementController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<Advertisement>> getAllAdvertisements() {
+    public ResponseEntity<List<Bicycle>> getAllAdvertisements() {
         try {
-            List<Advertisement> advertisements = advertisementService.getAllAdvertisements();
+            List<Bicycle> advertisements = advertisementService.getAllAdvertisements();
             return ResponseEntity.ok(advertisements);
         } catch (Exception e) {
             System.err.println("Erro ao buscar anúncios: " + e.getMessage());
