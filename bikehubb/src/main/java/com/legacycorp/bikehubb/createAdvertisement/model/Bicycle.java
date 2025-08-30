@@ -2,8 +2,11 @@ package com.legacycorp.bikehubb.createAdvertisement.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 import java.math.BigDecimal;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -58,17 +62,21 @@ public class Bicycle {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
-    @Column(name = "published_at")
+    @Column(name = "published_at", nullable = true)
     private LocalDateTime publishedAt;
     
-    @Column(name = "payment_intent_id")
+    @Column(name = "payment_intent_id", nullable = true)
     private String paymentIntentId;
     
-    @Column(name = "payment_date")
+    @Column(name = "payment_date", nullable = true)
     private LocalDateTime paymentDate;
     
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    // Relacionamento com imagens
+    @OneToMany(mappedBy = "bicycle", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BikeImage> images = new ArrayList<>();
 
     public enum AdvertisementStatus {
         DRAFT,

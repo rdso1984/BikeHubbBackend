@@ -68,6 +68,11 @@ public class AdvertisementController {
             
             Bicycle advertisement = advertisementService.createAdvertisement(request, externalId, authHeader);
             
+            // Processar imagens se fornecidas
+            if (request.getImages() != null && request.getImages().length > 0) {
+                advertisementService.processAdvertisementImages(request.getImages(), advertisement.getId());
+            }
+            
             return ResponseEntity.ok(Map.of("message", "Anúncio criado com sucesso!", "id", advertisement.getId().toString()));
             
         } catch (Exception e) {

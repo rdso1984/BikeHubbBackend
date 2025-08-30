@@ -2,19 +2,21 @@ package com.legacycorp.bikehubb.createAdvertisement.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.legacycorp.bikehubb.createAdvertisement.dto.AdvertisementRequest;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
+import com.legacycorp.bikehubb.createAdvertisement.model.BikeImage;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle.AdvertisementStatus;
 import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.createAdvertisement.repository.AdvertisementRepository;
+import com.legacycorp.bikehubb.createAdvertisement.repository.BikeImageRepository;
 import com.legacycorp.bikehubb.createAdvertisement.repository.UserRepository;
 import com.legacycorp.bikehubb.security.JwtUtil;
 
@@ -28,8 +30,12 @@ public class AdvertisementService {
     private UserRepository userRepository;
     
     @Autowired
+    private BikeImageRepository bikeImageRepository;
+    
+    @Autowired
     private JwtUtil jwtUtil;
 
+    @Transactional
     public Bicycle createAdvertisement(AdvertisementRequest request, String externalId, String authToken) {
         
         User user = userRepository.findByExternalId(externalId)
@@ -41,11 +47,27 @@ public class AdvertisementService {
                     // Extrair informações do token JWT
                     String email = jwtUtil.extractUsername(authToken);
                     
-                    // Criar novo usuário
+                    // Verificar se já existe usuário com o mesmo email
+                    if (userRepository.findByEmail(email).isPresent()) {
+                        throw new RuntimeException("Já existe um usuário com o email: " + email);
+                    }
+                    
+                    // Criar novo usuário com validações
                     User newUser = new User();
                     newUser.setExternalId(externalId);
                     newUser.setEmail(email);
-                    newUser.setNome(email.split("@")[0]); // Usar parte do email como nome temporário
+                    
+                    // Validar email antes de prosseguir
+                    if (email == null || email.trim().isEmpty() || !email.contains("@")) {
+                        throw new RuntimeException("Email inválido extraído do token: " + email);
+                    }
+                    
+                    // Usar parte do email como nome temporário ou usar um padrão
+                    String nome = email.split("@")[0];
+                    if (nome.trim().isEmpty()) {
+                        nome = "Usuario_" + System.currentTimeMillis();
+                    }
+                    newUser.setNome(nome);
                     
                     // Salvar o usuário no banco de dados
                     User savedUser = userRepository.save(newUser);
@@ -53,8 +75,9 @@ public class AdvertisementService {
                     
                     return savedUser;
                 } catch (Exception e) {
-                    System.err.println("Erro ao criar usuário: " + e.getMessage());
-                    throw new RuntimeException("Erro ao criar usuário: " + e.getMessage());
+                    System.err.println("Erro detalhado ao criar usuário: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                    e.printStackTrace();
+                    throw new RuntimeException("Erro ao criar usuário: " + e.getMessage(), e);
                 }
             });
 
@@ -88,38 +111,136 @@ public class AdvertisementService {
         bicycle.setOwnerId(user.getId());
         bicycle.setCreatedAt(LocalDateTime.now());
         bicycle.setExpiresAt(LocalDateTime.now().plusDays(60));
+        
+        // Definir valores padrão para campos que podem estar causando problemas
+        bicycle.setPaymentIntentId(null); // Explicitamente null
+        bicycle.setPaymentDate(null); // Explicitamente null  
+        // Para status DRAFT, não definir published_at (deixar null)
+        bicycle.setPublishedAt(null); // Explicitamente null
+
+        // Log detalhado dos valores antes de salvar
+        System.out.println("=== DADOS DA BICICLETA ANTES DE SALVAR ===");
+        System.out.println("ID: " + bicycle.getId());
+        System.out.println("Title: " + bicycle.getTitle());
+        System.out.println("Description: " + bicycle.getDescription());
+        System.out.println("Price: " + bicycle.getPrice());
+        System.out.println("Category: " + bicycle.getCategory());
+        System.out.println("Brand: " + bicycle.getBrand());
+        System.out.println("Model: " + bicycle.getModel());
+        System.out.println("Year: " + bicycle.getYear());
+        System.out.println("Condition: " + bicycle.getCondition());
+        System.out.println("FrameSize: " + bicycle.getFrameSize());
+        System.out.println("Color: " + bicycle.getColor());
+        System.out.println("City: " + bicycle.getCity());
+        System.out.println("State: " + bicycle.getState());
+        System.out.println("Neighborhood: " + bicycle.getNeighborhood());
+        System.out.println("IsActive: " + bicycle.isActive());
+        System.out.println("IsPaid: " + bicycle.isPaid());
+        System.out.println("Status: " + bicycle.getStatus());
+        System.out.println("Owner ID: " + bicycle.getOwner());
+        System.out.println("Created At: " + bicycle.getCreatedAt());
+        System.out.println("Expires At: " + bicycle.getExpiresAt());
+        System.out.println("========================================");
 
         // Salvar no banco
         try {
+            System.out.println("Iniciando salvamento da bicicleta...");
             Bicycle savedAdvertisement = advertisementRepository.save(bicycle);
             System.out.println("Anúncio salvo com sucesso. ID: " + savedAdvertisement.getId() + ", Owner ID: " + savedAdvertisement.getOwnerId());
 
-            // Processar imagens se existirem -> TODO: Implementar upload das imagens
-            if (request.getImages() != null && request.getImages().length > 0) {
-                processImages(request.getImages(), savedAdvertisement.getId());
-            }
-            
+            // Flush explícito para forçar o commit imediato
+            advertisementRepository.flush();
+            System.out.println("Flush executado com sucesso.");
+
             return savedAdvertisement;
         } catch (Exception e) {
-            System.err.println("Erro ao salvar anúncio: " + e.getMessage());
+            System.err.println("Erro detalhado ao salvar anúncio: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            
+            // Tentar identificar a causa específica
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                System.err.println("Causa: " + cause.getClass().getSimpleName() + " - " + cause.getMessage());
+                cause = cause.getCause();
+            }
+            
             throw new RuntimeException("Erro ao salvar anúncio: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Processa as imagens de um anúncio em uma transação separada
+     * @param images Array de imagens para processar
+     * @param advertisementId ID do anúncio
+     */
+    public void processAdvertisementImages(MultipartFile[] images, UUID advertisementId) {
+        try {
+            if (images != null && images.length > 0) {
+                processImages(images, advertisementId);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao processar imagens para anúncio " + advertisementId + ": " + e.getMessage());
+            // Não rethrow para não afetar a criação do anúncio
         }
     }
 
     private void processImages(MultipartFile[] images, UUID advertisementId) {
-        // TODO: Implementar upload das imagens
-        // Aqui você pode:
-        // 1. Salvar as imagens no sistema de arquivos ou cloud storage
-        // 2. Salvar os caminhos das imagens em uma tabela separada no banco
-        
-        System.out.println("Processando " + images.length + " imagens para o anúncio " + advertisementId);
-        
-        Arrays.stream(images)
-            .filter(image -> !image.isEmpty())
-            .forEach(image -> {
-                System.out.println("Processando imagem: " + image.getOriginalFilename());
-                // Implementar lógica de upload
-            });
+        try {
+            System.out.println("Processando " + images.length + " imagens para o anúncio " + advertisementId);
+            
+            // Buscar a bicicleta para associar as imagens
+            Bicycle bicycle = advertisementRepository.findById(advertisementId)
+                .orElseThrow(() -> new RuntimeException("Anúncio não encontrado: " + advertisementId));
+            
+            // Processar cada imagem
+            for (int i = 0; i < images.length; i++) {
+                MultipartFile image = images[i];
+                
+                if (image.isEmpty()) {
+                    System.out.println("Imagem vazia ignorada: " + image.getOriginalFilename());
+                    continue;
+                }
+                
+                // Validar tipo de arquivo
+                String contentType = image.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    System.err.println("Tipo de arquivo inválido: " + contentType + " para " + image.getOriginalFilename());
+                    continue;
+                }
+                
+                // Validar tamanho (máximo 5MB)
+                if (image.getSize() > 5 * 1024 * 1024) {
+                    System.err.println("Arquivo muito grande: " + image.getSize() + " bytes para " + image.getOriginalFilename());
+                    continue;
+                }
+                
+                try {
+                    // Criar entidade BikeImage
+                    BikeImage bikeImage = new BikeImage();
+                    bikeImage.setBicycle(bicycle);
+                    bikeImage.setOriginalFilename(image.getOriginalFilename());
+                    bikeImage.setContentType(contentType);
+                    bikeImage.setFileSize(image.getSize());
+                    bikeImage.setImageData(image.getBytes());
+                    bikeImage.setPrimary(i == 0); // Primeira imagem é a principal
+                    
+                    // Salvar no banco
+                    BikeImage savedImage = bikeImageRepository.save(bikeImage);
+                    
+                    System.out.println("Imagem salva com sucesso: " + savedImage.getOriginalFilename() + 
+                                     " (ID: " + savedImage.getId() + ", Tamanho: " + savedImage.getFormattedSize() + ")");
+                                     
+                } catch (Exception e) {
+                    System.err.println("Erro ao salvar imagem " + image.getOriginalFilename() + ": " + e.getMessage());
+                }
+            }
+            
+            System.out.println("Processamento de imagens concluído para anúncio " + advertisementId);
+            
+        } catch (Exception e) {
+            System.err.println("Erro geral ao processar imagens para anúncio " + advertisementId + ": " + e.getMessage());
+            throw new RuntimeException("Erro ao processar imagens", e);
+        }
     }
 
     public List<Bicycle> getAllAdvertisements() {
