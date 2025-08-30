@@ -15,21 +15,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
-import com.legacycorp.bikehubb.model.User;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle.AdvertisementStatus;
 
 @Repository
 public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
 
-    // Busca básica por ID incluindo o dono do anúncio
-    @Query("SELECT a FROM Advertisement a JOIN FETCH a.owner WHERE a.id = :id")
-    Optional<Bicycle> findByIdWithOwner(@Param("id") UUID id);
+    // Busca básica por ID (sem JOIN pois owner agora é Long referenciando users.id)
+    Optional<Bicycle> findById(UUID id);
 
     // Busca anúncios por status com paginação
     Page<Bicycle> findByStatus(AdvertisementStatus status, Pageable pageable);
 
-    // Busca anúncios por usuário
-    List<Bicycle> findByOwner(User owner);
+    // Busca anúncios por usuário (usando Long do owner referenciando users.id)
+    List<Bicycle> findByOwner(Long owner);
 
     // Busca anúncios por categoria (bike ou part)
     Page<Bicycle> findByCategoryAndStatus(String category, AdvertisementStatus status, Pageable pageable);
@@ -38,7 +36,7 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
     List<Bicycle> findByStatusAndPublishedAtAfter(AdvertisementStatus status, LocalDateTime publishedAfter);
 
     // Busca anúncios por intervalo de preço
-    @Query("SELECT a FROM Advertisement a WHERE a.status = :status AND a.price BETWEEN :minPrice AND :maxPrice")
+    @Query("SELECT b FROM Bicycle b WHERE b.status = :status AND b.price BETWEEN :minPrice AND :maxPrice")
     Page<Bicycle> findByPriceRange(
             @Param("status") AdvertisementStatus status,
             @Param("minPrice") BigDecimal minPrice,
@@ -47,19 +45,19 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
 
     // Atualiza o status de um anúncio
     @Modifying
-    @Query("UPDATE Advertisement a SET a.status = :status WHERE a.id = :id")
+    @Query("UPDATE Bicycle b SET b.status = :status WHERE b.id = :id")
     int updateStatus(@Param("id") UUID id, @Param("status") AdvertisementStatus status);
 
     // Busca anúncios que estão pendentes de pagamento há mais de X horas
-    @Query("SELECT a FROM Advertisement a WHERE a.status = 'PENDING_PAYMENT' AND a.createdAt < :threshold")
+    @Query("SELECT b FROM Bicycle b WHERE b.status = 'PENDING_PAYMENT' AND b.createdAt < :threshold")
     List<Bicycle> findExpiredPendingPayments(@Param("threshold") LocalDateTime threshold);
 
     // Busca anúncios com filtros combinados (para busca avançada)
-    @Query("SELECT a FROM Advertisement a WHERE " +
-           "(:category IS NULL OR a.category = :category) AND " +
-           "(:minPrice IS NULL OR a.price >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR a.price <= :maxPrice) AND " +
-           "a.status = 'PUBLISHED'")
+    @Query("SELECT b FROM Bicycle b WHERE " +
+           "(:category IS NULL OR b.category = :category) AND " +
+           "(:minPrice IS NULL OR b.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR b.price <= :maxPrice) AND " +
+           "b.status = 'PUBLISHED'")
     Page<Bicycle> searchPublishedAdvertisements(
             @Param("category") String category,
             @Param("minPrice") BigDecimal minPrice,
@@ -69,6 +67,16 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
     // Contagem de anúncios por status
     long countByStatus(AdvertisementStatus status);
 
-    // Verifica se um usuário é dono de um anúncio específico
-    boolean existsByIdAndOwner(UUID id, User owner);
+    // Verifica se um usuário é dono de um anúncio específico (usando UUID)
+    boolean existsByIdAndOwner(UUID id, Long owner);
+
+    // Busca anúncios expirados que ainda não foram marcados como EXPIRED
+    @Query("SELECT b FROM Bicycle b WHERE b.expiresAt < :currentTime AND b.status != 'EXPIRED'")
+    List<Bicycle> findExpiredAdvertisements(@Param("currentTime") LocalDateTime currentTime);
+
+    // Busca anúncios que expiram em breve (nos próximos X dias)
+    @Query("SELECT b FROM Bicycle b WHERE b.expiresAt BETWEEN :currentTime AND :futureTime AND b.status = 'PUBLISHED'")
+    List<Bicycle> findAdvertisementsExpiringInDays(
+            @Param("currentTime") LocalDateTime currentTime,
+            @Param("futureTime") LocalDateTime futureTime);
 }

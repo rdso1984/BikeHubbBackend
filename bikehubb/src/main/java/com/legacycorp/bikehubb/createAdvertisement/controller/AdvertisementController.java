@@ -50,12 +50,12 @@ public class AdvertisementController {
             }
             
             // Extrair userId do token JWT como String (UUID)
-            String userId = jwtUtil.extractUserIdAsString(authHeader);
+            String externalId = jwtUtil.extractUserIdAsString(authHeader);
             
             System.out.println("Chegou na API - Título: " + request.getTitle());
             System.out.println("Preço: " + request.getPrice());
             System.out.println("Categoria: " + request.getCategory());
-            System.out.println("UserId extraído do token: " + userId);
+            System.out.println("ExternalId extraído do token: " + externalId);
             
             if (request.getImages() != null) {
                 System.out.println("Número de imagens: " + request.getImages().length);
@@ -66,7 +66,7 @@ public class AdvertisementController {
                 return ResponseEntity.status(401).body(Map.of("error", "Token inválido ou expirado"));
             }
             
-            Bicycle advertisement = advertisementService.createAdvertisement(request, userId);
+            Bicycle advertisement = advertisementService.createAdvertisement(request, externalId, authHeader);
             
             return ResponseEntity.ok(Map.of("message", "Anúncio criado com sucesso!", "id", advertisement.getId().toString()));
             

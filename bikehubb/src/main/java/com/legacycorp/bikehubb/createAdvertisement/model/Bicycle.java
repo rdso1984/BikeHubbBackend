@@ -53,7 +53,7 @@ public class Bicycle {
     private AdvertisementStatus status = AdvertisementStatus.DRAFT;
 
     @Column(name = "user_id", nullable = true) // Temporariamente nullable para resolver problemas de migração
-    private UUID owner;
+    private Long owner;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -66,6 +66,9 @@ public class Bicycle {
     
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
+    
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     public enum AdvertisementStatus {
         DRAFT,
@@ -88,11 +91,20 @@ public class Bicycle {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        // Definir data de expiração para 60 dias a partir da criação se não foi definida
+        if (expiresAt == null) {
+            expiresAt = LocalDateTime.now().plusDays(60);
+        }
     }
 
     // Método auxiliar para definir o owner por ID
-    public void setOwnerId(UUID userId) {
+    public void setOwnerId(Long userId) {
         this.owner = userId;
+    }
+    
+    // Método auxiliar para definir o owner diretamente
+    public void setOwner(Long ownerId) {
+        this.owner = ownerId;
     }
 
     // Método auxiliar para obter o ID do owner
@@ -103,5 +115,20 @@ public class Bicycle {
     // Método auxiliar para obter UUID do anúncio como String
     public String getIdAsString() {
         return this.id != null ? this.id.toString() : null;
+    }
+
+    // Método auxiliar para verificar se o anúncio está expirado
+    public boolean isExpired() {
+        return this.expiresAt != null && LocalDateTime.now().isAfter(this.expiresAt);
+    }
+
+    // Método auxiliar para renovar a expiração por mais 60 dias
+    public void renewExpiration() {
+        this.expiresAt = LocalDateTime.now().plusDays(60);
+    }
+
+    // Método auxiliar para renovar a expiração por um número específico de dias
+    public void renewExpiration(int days) {
+        this.expiresAt = LocalDateTime.now().plusDays(days);
     }
 }
