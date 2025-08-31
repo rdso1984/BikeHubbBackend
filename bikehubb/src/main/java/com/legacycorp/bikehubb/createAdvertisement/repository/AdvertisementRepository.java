@@ -80,8 +80,8 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
             @Param("currentTime") LocalDateTime currentTime,
             @Param("futureTime") LocalDateTime futureTime);
 
-    // Busca anúncios com múltiplos filtros aplicados
-    @Query(value = "SELECT * FROM bicycles b WHERE " +
+    // Busca anúncios com múltiplos filtros aplicados - com FETCH das imagens
+    @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images WHERE " +
            "(b.status = 'PUBLISHED' OR b.status = 'DRAFT') AND " +
            "(:state IS NULL OR LOWER(b.state) LIKE LOWER(CONCAT('%', :state, '%'))) AND " +
            "(:city IS NULL OR LOWER(b.city) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
@@ -92,14 +92,13 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
            "(:category IS NULL OR LOWER(b.category) = LOWER(:category)) AND " +
            "(:brand IS NULL OR LOWER(b.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) " +
            "ORDER BY " +
-           "CASE WHEN :sort = 'newest' THEN b.created_at END DESC, " +
-           "CASE WHEN :sort = 'oldest' THEN b.created_at END ASC, " +
+           "CASE WHEN :sort = 'newest' THEN b.createdAt END DESC, " +
+           "CASE WHEN :sort = 'oldest' THEN b.createdAt END ASC, " +
            "CASE WHEN :sort = 'price_asc' THEN b.price END ASC, " +
            "CASE WHEN :sort = 'price_desc' THEN b.price END DESC, " +
            "CASE WHEN :sort = 'title_asc' THEN b.title END ASC, " +
            "CASE WHEN :sort = 'title_desc' THEN b.title END DESC, " +
-           "b.created_at DESC",
-           nativeQuery = true)
+           "b.createdAt DESC")
     List<Bicycle> findAdvertisementsWithFilters(
             @Param("state") String state,
             @Param("city") String city,
@@ -111,7 +110,7 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
             @Param("brand") String brand,
             @Param("sort") String sort);
             
-    // Método simples para teste - busca todos os anúncios sem filtros
-    @Query(value = "SELECT * FROM bicycles ORDER BY created_at DESC", nativeQuery = true)
+    // Método simples para teste - busca todos os anúncios sem filtros COM imagens
+    @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images ORDER BY b.createdAt DESC")
     List<Bicycle> findAllForTesting();
 }

@@ -320,6 +320,19 @@ public class AdvertisementService {
         
         System.out.println("Busca retornou " + results.size() + " resultados");
         
+        // Verificar se as imagens foram carregadas
+        if (!results.isEmpty()) {
+            Bicycle firstResult = results.get(0);
+            System.out.println("=== VERIFICAÇÃO DE IMAGENS ===");
+            System.out.println("Primeira bicicleta do resultado: " + firstResult.getTitle());
+            System.out.println("Número de imagens carregadas: " + firstResult.getImages().size());
+            if (!firstResult.getImages().isEmpty()) {
+                System.out.println("Primeira imagem: " + firstResult.getImages().get(0).getOriginalFilename());
+                System.out.println("É primária: " + firstResult.getImages().get(0).isPrimary());
+            }
+            System.out.println("=============================");
+        }
+        
         return results;
     }
 
