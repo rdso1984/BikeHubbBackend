@@ -246,6 +246,82 @@ public class AdvertisementService {
     public List<Bicycle> getAllAdvertisements() {
         return advertisementRepository.findAll();
     }
+    
+    /**
+     * Busca anúncios com filtros aplicados
+     * @param state Estado
+     * @param city Cidade  
+     * @param neighborhood Bairro
+     * @param minPrice Preço mínimo
+     * @param maxPrice Preço máximo
+     * @param condition Condição da bicicleta
+     * @param category Categoria
+     * @param brand Marca
+     * @param sort Critério de ordenação
+     * @return Lista de anúncios filtrados
+     */
+    public List<Bicycle> searchAdvertisements(String state, String city, String neighborhood, 
+                                            String minPrice, String maxPrice, String condition, 
+                                            String category, String brand, String sort) {
+        
+        // Primeiro, vamos verificar se há dados no banco
+        List<Bicycle> allBicycles = advertisementRepository.findAllForTesting();
+        System.out.println("=== DADOS NO BANCO ===");
+        System.out.println("Total de bicicletas no banco: " + allBicycles.size());
+        
+        if (!allBicycles.isEmpty()) {
+            Bicycle firstBicycle = allBicycles.get(0);
+            System.out.println("Primeira bicicleta:");
+            System.out.println("  ID: " + firstBicycle.getId());
+            System.out.println("  Title: " + firstBicycle.getTitle());
+            System.out.println("  Status: " + firstBicycle.getStatus());
+            System.out.println("  State: " + firstBicycle.getState());
+            System.out.println("  City: " + firstBicycle.getCity());
+            System.out.println("  Brand: " + firstBicycle.getBrand());
+            System.out.println("  Category: " + firstBicycle.getCategory());
+            System.out.println("  Condition: " + firstBicycle.getCondition());
+            System.out.println("  Price: " + firstBicycle.getPrice());
+        }
+        System.out.println("======================");
+        
+        // Converter strings de preço para BigDecimal se fornecidas
+        BigDecimal minPriceDecimal = null;
+        BigDecimal maxPriceDecimal = null;
+        
+        try {
+            if (minPrice != null && !minPrice.trim().isEmpty()) {
+                minPriceDecimal = new BigDecimal(minPrice);
+            }
+            if (maxPrice != null && !maxPrice.trim().isEmpty()) {
+                maxPriceDecimal = new BigDecimal(maxPrice);
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("Erro ao converter preços: " + e.getMessage());
+            // Continuar com valores null se conversão falhar
+        }
+        
+        // Log dos filtros que serão aplicados
+        System.out.println("=== FILTROS DE BUSCA APLICADOS ===");
+        System.out.println("State: " + state);
+        System.out.println("City: " + city);
+        System.out.println("Neighborhood: " + neighborhood);
+        System.out.println("Min Price: " + minPriceDecimal);
+        System.out.println("Max Price: " + maxPriceDecimal);
+        System.out.println("Condition: " + condition);
+        System.out.println("Category: " + category);
+        System.out.println("Brand: " + brand);
+        System.out.println("Sort: " + sort);
+        System.out.println("==================================");
+        
+        // Usar o método do repository com todos os filtros
+        List<Bicycle> results = advertisementRepository.findAdvertisementsWithFilters(
+            state, city, neighborhood, minPriceDecimal, maxPriceDecimal, 
+            condition, category, brand, sort);
+        
+        System.out.println("Busca retornou " + results.size() + " resultados");
+        
+        return results;
+    }
 
     public Bicycle getAdvertisementById(UUID id) {
         Bicycle bicycle = advertisementRepository.findById(id)

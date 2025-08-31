@@ -79,4 +79,39 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
     List<Bicycle> findAdvertisementsExpiringInDays(
             @Param("currentTime") LocalDateTime currentTime,
             @Param("futureTime") LocalDateTime futureTime);
+
+    // Busca anúncios com múltiplos filtros aplicados
+    @Query(value = "SELECT * FROM bicycles b WHERE " +
+           "(b.status = 'PUBLISHED' OR b.status = 'DRAFT') AND " +
+           "(:state IS NULL OR LOWER(b.state) LIKE LOWER(CONCAT('%', :state, '%'))) AND " +
+           "(:city IS NULL OR LOWER(b.city) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
+           "(:neighborhood IS NULL OR LOWER(b.neighborhood) LIKE LOWER(CONCAT('%', :neighborhood, '%'))) AND " +
+           "(:minPrice IS NULL OR b.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR b.price <= :maxPrice) AND " +
+           "(:condition IS NULL OR LOWER(b.condition) = LOWER(:condition)) AND " +
+           "(:category IS NULL OR LOWER(b.category) = LOWER(:category)) AND " +
+           "(:brand IS NULL OR LOWER(b.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) " +
+           "ORDER BY " +
+           "CASE WHEN :sort = 'newest' THEN b.created_at END DESC, " +
+           "CASE WHEN :sort = 'oldest' THEN b.created_at END ASC, " +
+           "CASE WHEN :sort = 'price_asc' THEN b.price END ASC, " +
+           "CASE WHEN :sort = 'price_desc' THEN b.price END DESC, " +
+           "CASE WHEN :sort = 'title_asc' THEN b.title END ASC, " +
+           "CASE WHEN :sort = 'title_desc' THEN b.title END DESC, " +
+           "b.created_at DESC",
+           nativeQuery = true)
+    List<Bicycle> findAdvertisementsWithFilters(
+            @Param("state") String state,
+            @Param("city") String city,
+            @Param("neighborhood") String neighborhood,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("condition") String condition,
+            @Param("category") String category,
+            @Param("brand") String brand,
+            @Param("sort") String sort);
+            
+    // Método simples para teste - busca todos os anúncios sem filtros
+    @Query(value = "SELECT * FROM bicycles ORDER BY created_at DESC", nativeQuery = true)
+    List<Bicycle> findAllForTesting();
 }
