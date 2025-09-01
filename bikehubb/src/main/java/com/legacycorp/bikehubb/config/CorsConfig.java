@@ -14,10 +14,16 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:4200") // Adicione as URLs do seu frontend
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOrigins(
+                    "http://localhost:3000", 
+                    "http://localhost:3001", 
+                    "http://localhost:4200",
+                    "https://*.netlify.app",  // Todos os subdomínios do Netlify
+                    "https://your-app-name.netlify.app"  // Substitua pela sua URL específica
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
-                .exposedHeaders("Authorization") // Expor o header Authorization
+                .exposedHeaders("Authorization", "Content-Type") 
                 .allowCredentials(true)
                 .maxAge(3600);
     }
