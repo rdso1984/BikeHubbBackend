@@ -18,8 +18,8 @@ public class CorsConfig implements WebMvcConfigurer {
                     "http://localhost:3000", 
                     "http://localhost:3001", 
                     "http://localhost:4200",
-                    "https://*.netlify.app",  // Todos os subdomínios do Netlify
-                    "https://your-app-name.netlify.app"  // Substitua pela sua URL específica
+                    "https://bikehubb.netlify.app",  // Seu frontend no Netlify
+                    "https://bikehubbbackend.onrender.com"  // Seu backend no Render
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
@@ -32,11 +32,15 @@ public class CorsConfig implements WebMvcConfigurer {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Temporário - permitir todas as origens para teste
-        configuration.addAllowedOriginPattern("*");
+        // URLs específicas permitidas
+        configuration.addAllowedOrigin("https://bikehubb.netlify.app");
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedOrigin("http://localhost:3001");
+        configuration.addAllowedOrigin("http://localhost:4200");
+        
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(false); // Mudado para false temporariamente
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

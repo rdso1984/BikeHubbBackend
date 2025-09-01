@@ -26,7 +26,7 @@ public class InfoController {
         response.put("message", "Backend está funcionando!");
         
         // Informações para o frontend identificar a URL correta
-        response.put("baseUrl", "https://seu-app.onrender.com"); // Você vai me informar a URL real
+        response.put("baseUrl", "https://bikehubbbackend.onrender.com"); 
         response.put("corsEnabled", true);
         
         return ResponseEntity.ok(response);
@@ -35,7 +35,7 @@ public class InfoController {
     @GetMapping("/config")
     public ResponseEntity<Map<String, String>> getConfig() {
         Map<String, String> config = new HashMap<>();
-        config.put("apiBaseUrl", "https://seu-app.onrender.com/api"); // Substitua pela URL real
+        config.put("apiBaseUrl", "https://bikehubbbackend.onrender.com/api");
         config.put("environment", "production");
         config.put("corsEnabled", "true");
         return ResponseEntity.ok(config);
