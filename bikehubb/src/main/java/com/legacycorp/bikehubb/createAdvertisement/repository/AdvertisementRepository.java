@@ -80,17 +80,17 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
             @Param("currentTime") LocalDateTime currentTime,
             @Param("futureTime") LocalDateTime futureTime);
 
-    // Busca anúncios com múltiplos filtros aplicados - com FETCH das imagens
-    @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images WHERE " +
+    // Busca anúncios com múltiplos filtros aplicados
+    @Query("SELECT b FROM Bicycle b WHERE " +
            "(b.status = 'PUBLISHED' OR b.status = 'DRAFT') AND " +
-           "(:state IS NULL OR LOWER(b.state) LIKE LOWER(CONCAT('%', :state, '%'))) AND " +
-           "(:city IS NULL OR LOWER(b.city) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
-           "(:neighborhood IS NULL OR LOWER(b.neighborhood) LIKE LOWER(CONCAT('%', :neighborhood, '%'))) AND " +
+           "(:state IS NULL OR b.state IS NULL OR b.state LIKE %:state%) AND " +
+           "(:city IS NULL OR b.city IS NULL OR b.city LIKE %:city%) AND " +
+           "(:neighborhood IS NULL OR b.neighborhood IS NULL OR b.neighborhood LIKE %:neighborhood%) AND " +
            "(:minPrice IS NULL OR b.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR b.price <= :maxPrice) AND " +
-           "(:condition IS NULL OR LOWER(b.condition) = LOWER(:condition)) AND " +
-           "(:category IS NULL OR LOWER(b.category) = LOWER(:category)) AND " +
-           "(:brand IS NULL OR LOWER(b.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) " +
+           "(:condition IS NULL OR b.condition IS NULL OR b.condition = :condition) AND " +
+           "(:category IS NULL OR b.category IS NULL or b.category = :category) AND " +
+           "(:brand IS NULL OR b.brand IS NULL OR b.brand LIKE %:brand%) " +
            "ORDER BY " +
            "CASE WHEN :sort = 'newest' THEN b.createdAt END DESC, " +
            "CASE WHEN :sort = 'oldest' THEN b.createdAt END ASC, " +
@@ -113,4 +113,8 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
     // Método simples para teste - busca todos os anúncios sem filtros COM imagens
     @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images ORDER BY b.createdAt DESC")
     List<Bicycle> findAllForTesting();
+    
+    // Método para carregar uma bicicleta específica com suas imagens
+    @Query("SELECT b FROM Bicycle b LEFT JOIN FETCH b.images WHERE b.id = :id")
+    Optional<Bicycle> findByIdWithImages(@Param("id") UUID id);
 }

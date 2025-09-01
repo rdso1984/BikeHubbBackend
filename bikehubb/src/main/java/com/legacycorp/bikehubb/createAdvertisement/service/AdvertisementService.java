@@ -314,30 +314,46 @@ public class AdvertisementService {
         System.out.println("==================================");
         
         // Usar o método do repository com todos os filtros
-        List<Bicycle> results = advertisementRepository.findAdvertisementsWithFilters(
-            state, city, neighborhood, minPriceDecimal, maxPriceDecimal, 
-            condition, category, brand, sort);
-        
-        System.out.println("Busca retornou " + results.size() + " resultados");
-        
-        // Verificar se as imagens foram carregadas
-        if (!results.isEmpty()) {
-            Bicycle firstResult = results.get(0);
-            System.out.println("=== VERIFICAÇÃO DE IMAGENS ===");
-            System.out.println("Primeira bicicleta do resultado: " + firstResult.getTitle());
-            System.out.println("Número de imagens carregadas: " + firstResult.getImages().size());
-            if (!firstResult.getImages().isEmpty()) {
-                System.out.println("Primeira imagem: " + firstResult.getImages().get(0).getOriginalFilename());
-                System.out.println("É primária: " + firstResult.getImages().get(0).isPrimary());
+        try {
+            List<Bicycle> results = advertisementRepository.findAdvertisementsWithFilters(
+                state, city, neighborhood, minPriceDecimal, maxPriceDecimal, 
+                condition, category, brand, sort);
+            
+            System.out.println("Busca retornou " + results.size() + " resultados");
+            
+            // Carregar as imagens para cada bicicleta encontrada (se necessário)
+            for (Bicycle bicycle : results) {
+                // As imagens serão carregadas automaticamente devido ao relacionamento @OneToMany
+                // Mas vamos forçar a inicialização da lista para evitar lazy loading issues
+                if (bicycle.getImages() != null) {
+                    bicycle.getImages().size(); // Force initialization
+                }
             }
-            System.out.println("=============================");
+            
+            // Verificar se as imagens foram carregadas
+            if (!results.isEmpty()) {
+                Bicycle firstResult = results.get(0);
+                System.out.println("=== VERIFICAÇÃO DE IMAGENS ===");
+                System.out.println("Primeira bicicleta do resultado: " + firstResult.getTitle());
+                System.out.println("Número de imagens carregadas: " + firstResult.getImages().size());
+                if (!firstResult.getImages().isEmpty()) {
+                    System.out.println("Primeira imagem: " + firstResult.getImages().get(0).getOriginalFilename());
+                    System.out.println("É primária: " + firstResult.getImages().get(0).isPrimary());
+                }
+                System.out.println("=============================");
+            }
+            
+            return results;
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar anúncios: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao buscar anúncios: " + e.getMessage(), e);
         }
-        
-        return results;
     }
 
     public Bicycle getAdvertisementById(UUID id) {
-        Bicycle bicycle = advertisementRepository.findById(id)
+        Bicycle bicycle = advertisementRepository.findByIdWithImages(id)
             .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
         
         // Verificar se o anúncio está expirado e atualizar status se necessário
