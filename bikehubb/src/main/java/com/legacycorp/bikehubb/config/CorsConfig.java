@@ -18,6 +18,7 @@ public class CorsConfig implements WebMvcConfigurer {
                     "http://localhost:3000", 
                     "http://localhost:3001", 
                     "http://localhost:4200",
+                    "http://localhost:4201",
                     "https://bikehubb.netlify.app",  // Seu frontend no Netlify
                     "https://bikehubbbackend.onrender.com"  // Seu backend no Render
                 )
