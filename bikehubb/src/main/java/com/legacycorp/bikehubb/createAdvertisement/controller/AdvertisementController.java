@@ -2,8 +2,10 @@ package com.legacycorp.bikehubb.createAdvertisement.controller;
 
 import com.legacycorp.bikehubb.createAdvertisement.dto.AdvertisementRequest;
 import com.legacycorp.bikehubb.createAdvertisement.dto.BicycleListResponseDTO;
+import com.legacycorp.bikehubb.createAdvertisement.dto.BikeImageSummaryDTO;
 import com.legacycorp.bikehubb.createAdvertisement.service.AdvertisementService;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
+import com.legacycorp.bikehubb.createAdvertisement.repository.BikeImageRepository;
 import com.legacycorp.bikehubb.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class AdvertisementController {
 
     @Autowired
     private AdvertisementService advertisementService;
+
+    @Autowired
+    private BikeImageRepository bikeImageRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -90,16 +95,24 @@ public class AdvertisementController {
     @Transactional(readOnly = true) // Manter sessão aberta durante a leitura
     public ResponseEntity<List<BicycleListResponseDTO>> getAllAdvertisements() {
         try {
-            System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS ===");
+            System.out.println("=== INICIANDO BUSCA OTIMIZADA DE ANÚNCIOS ===");
+            
+            // Buscar anúncios SEM carregar imagens (mais rápido)
             List<Bicycle> advertisements = advertisementService.getAllAdvertisements();
             System.out.println("Encontrados " + advertisements.size() + " anúncios");
             
-            // Converter para DTO
+            // Converter para DTO de forma otimizada
             List<BicycleListResponseDTO> response = advertisements.stream()
-                .map(BicycleListResponseDTO::fromBicycle)
+                .map(bicycle -> {
+                    // Buscar apenas metadados das imagens (SEM imageData)
+                    List<BikeImageSummaryDTO> imageSummaries = 
+                        bikeImageRepository.findImageSummariesByBicycleId(bicycle.getId());
+                    
+                    return BicycleListResponseDTO.fromBicycleOptimized(bicycle, imageSummaries);
+                })
                 .collect(Collectors.toList());
             
-            System.out.println("Conversão para DTO concluída");
+            System.out.println("Conversão otimizada para DTO concluída");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Erro ao buscar anúncios: " + e.getMessage());

@@ -32,6 +32,10 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
     // Busca todos os anúncios com as imagens carregadas (EAGER)
     @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images ORDER BY b.createdAt DESC")
     List<Bicycle> findAllWithImages();
+    
+    // Busca anúncios SEM carregar os dados binários das imagens (mais rápido)
+    @Query("SELECT b FROM Bicycle b ORDER BY b.createdAt DESC")
+    List<Bicycle> findAllForList();
 
     // Busca anúncios por categoria (bike ou part)
     Page<Bicycle> findByCategoryAndStatus(String category, AdvertisementStatus status, Pageable pageable);

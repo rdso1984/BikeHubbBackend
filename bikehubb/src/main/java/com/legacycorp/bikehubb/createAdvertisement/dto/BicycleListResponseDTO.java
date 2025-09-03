@@ -51,7 +51,31 @@ public class BicycleListResponseDTO {
         this.images = images;
     }
 
-    // Método estático para converter de Bicycle para DTO
+    // Método estático para converter de Bicycle para DTO de forma otimizada
+    public static BicycleListResponseDTO fromBicycleOptimized(
+            com.legacycorp.bikehubb.createAdvertisement.model.Bicycle bicycle,
+            java.util.List<BikeImageSummaryDTO> imageSummaries) {
+            
+        return new BicycleListResponseDTO(
+            bicycle.getId(),
+            bicycle.getTitle(),
+            bicycle.getDescription(),
+            bicycle.getPrice(),
+            bicycle.getCategory(),
+            bicycle.getBrand(),
+            bicycle.getModel(),
+            bicycle.getYear(),
+            bicycle.getCondition(),
+            bicycle.getFrameSize(),
+            bicycle.getColor(),
+            bicycle.getCity(),
+            bicycle.getState(),
+            bicycle.getNeighborhood(),
+            imageSummaries
+        );
+    }
+
+    // Método estático para converter de Bicycle para DTO (mantido para compatibilidade)
     public static BicycleListResponseDTO fromBicycle(com.legacycorp.bikehubb.createAdvertisement.model.Bicycle bicycle) {
         // Converter as imagens para BikeImageSummaryDTO
         List<BikeImageSummaryDTO> imageSummaries = bicycle.getImages().stream()

@@ -22,6 +22,15 @@ public interface BikeImageRepository extends JpaRepository<BikeImage, UUID> {
     List<BikeImage> findByBicycleId(@Param("bicycleId") UUID bicycleId);
 
     /**
+     * Busca apenas metadados das imagens (SEM carregar imageData) - Otimizado para listagem
+     */
+    @Query("SELECT new com.legacycorp.bikehubb.createAdvertisement.dto.BikeImageSummaryDTO(" +
+           "bi.id, bi.originalFilename, bi.contentType, bi.fileSize, bi.isPrimary, bi.createdAt, " +
+           "CONCAT('/api/images/', bi.id)) " +
+           "FROM BikeImage bi WHERE bi.bicycle.id = :bicycleId ORDER BY bi.isPrimary DESC, bi.createdAt ASC")
+    List<com.legacycorp.bikehubb.createAdvertisement.dto.BikeImageSummaryDTO> findImageSummariesByBicycleId(@Param("bicycleId") UUID bicycleId);
+
+    /**
      * Busca a imagem principal de uma bicicleta
      */
     @Query("SELECT bi FROM BikeImage bi WHERE bi.bicycle.id = :bicycleId AND bi.isPrimary = true")
