@@ -244,7 +244,7 @@ public class AdvertisementService {
     }
 
     public List<Bicycle> getAllAdvertisements() {
-        return advertisementRepository.findAll();
+        return advertisementRepository.findAllWithImages(); // Usar método com FETCH JOIN
     }
     
     /**

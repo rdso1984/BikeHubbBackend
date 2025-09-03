@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,7 @@ public class AdvertisementController {
     }
 
     @GetMapping("/list")
+    @Transactional(readOnly = true) // Manter sessão aberta durante a leitura
     public ResponseEntity<List<BicycleListResponseDTO>> getAllAdvertisements() {
         try {
             System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS ===");

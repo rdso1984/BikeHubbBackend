@@ -28,6 +28,10 @@ public interface AdvertisementRepository extends JpaRepository<Bicycle, UUID> {
 
     // Busca anúncios por usuário (usando Long do owner referenciando users.id)
     List<Bicycle> findByOwner(Long owner);
+    
+    // Busca todos os anúncios com as imagens carregadas (EAGER)
+    @Query("SELECT DISTINCT b FROM Bicycle b LEFT JOIN FETCH b.images ORDER BY b.createdAt DESC")
+    List<Bicycle> findAllWithImages();
 
     // Busca anúncios por categoria (bike ou part)
     Page<Bicycle> findByCategoryAndStatus(String category, AdvertisementStatus status, Pageable pageable);
