@@ -36,10 +36,7 @@ public class Bicycle {
     // Campos adicionais para bicicletas
     private String brand;
     private String model;
-    
-    @Column(name = "`year`") // Escapar palavra reservada
-    private Integer year;
-    
+    private Integer year; // PostgreSQL não tem problema com 'year'
     private String condition;
     private String frameSize;
     private String color;
