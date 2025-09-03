@@ -88,16 +88,20 @@ public class AdvertisementController {
     @GetMapping("/list")
     public ResponseEntity<List<BicycleListResponseDTO>> getAllAdvertisements() {
         try {
+            System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS ===");
             List<Bicycle> advertisements = advertisementService.getAllAdvertisements();
+            System.out.println("Encontrados " + advertisements.size() + " anúncios");
             
             // Converter para DTO
             List<BicycleListResponseDTO> response = advertisements.stream()
                 .map(BicycleListResponseDTO::fromBicycle)
                 .collect(Collectors.toList());
-                
+            
+            System.out.println("Conversão para DTO concluída");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Erro ao buscar anúncios: " + e.getMessage());
+            e.printStackTrace(); // Stack trace completo
             return ResponseEntity.badRequest().build();
         }
     }
