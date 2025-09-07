@@ -1,0 +1,19 @@
+# Arquivos de debug e desenvolvimento local (Windows)
+debug-*.bat
+start-*.bat
+test-*.bat
+
+# Configurações específicas do VS Code (podem variar por desenvolvedor)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/launch-attach.json
+
+# Logs de desenvolvimento
+*.log
+
+# Cache Maven local
+target/
+
+# Arquivos temporários
+*.tmp
+*.temp
