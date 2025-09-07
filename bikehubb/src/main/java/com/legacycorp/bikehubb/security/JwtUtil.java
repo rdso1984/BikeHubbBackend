@@ -1,56 +1,78 @@
 package com.legacycorp.bikehubb.security;
 
-import java.util.Base64;
-import java.util.Date;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.JwtException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    // Chave secreta para validação de assinatura
+    // Em produção, isso deve vir de variável de ambiente ou ser configurado externamente
+    @Value("${jwt.secret:mySecretKey}")
+    private String secretKey;
 
-    // Extrair user_id do token JWT (versão simplificada)
-    public Long extractUserId(String token) {
+    // Método para obter a chave secreta decodificada
+    private SecretKey getSigningKey() {
+        // Se a chave é menor que 256 bits, usar o algoritmo HMAC para expandir
+        byte[] keyBytes = secretKey.getBytes();
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    // Extrair todas as claims do token
+    private Claims extractAllClaims(String token) {
         try {
             // Remove "Bearer " se presente
             if (token.startsWith("Bearer ")) {
                 token = token.substring(7);
             }
 
-            // JWT tem 3 partes separadas por ponto: header.payload.signature
-            String[] parts = token.split("\\.");
-            if (parts.length != 3) {
-                throw new RuntimeException("Token JWT inválido");
-            }
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new RuntimeException("Token JWT inválido ou malformado: " + e.getMessage());
+        }
+    }
 
-            // Decodificar o payload (segunda parte)
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+    // Extrair uma claim específica
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // Extrair user_id do token JWT usando JJWT
+    public Long extractUserId(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
             
-            // Parse do JSON
-            JsonNode payloadNode = objectMapper.readTree(payload);
-            
-            // Debug: mostrar o conteúdo do payload
-            System.out.println("Payload do token: " + payload);
+            // Debug: mostrar o conteúdo das claims
+            System.out.println("Claims do token: " + claims);
             
             // Tentar extrair user_id de diferentes campos possíveis
-            if (payloadNode.has("user_id")) {
-                return parseUserId(payloadNode.get("user_id").asText());
-            } else if (payloadNode.has("userId")) {
-                return parseUserId(payloadNode.get("userId").asText());
-            } else if (payloadNode.has("id")) {
-                return parseUserId(payloadNode.get("id").asText());
-            } else if (payloadNode.has("sub")) {
-                String sub = payloadNode.get("sub").asText();
+            if (claims.containsKey("user_id")) {
+                return parseUserId(claims.get("user_id").toString());
+            } else if (claims.containsKey("userId")) {
+                return parseUserId(claims.get("userId").toString());
+            } else if (claims.containsKey("id")) {
+                return parseUserId(claims.get("id").toString());
+            } else if (claims.getSubject() != null) {
+                String sub = claims.getSubject();
                 System.out.println("Campo 'sub' encontrado: " + sub);
                 return parseUserId(sub);
             }
             
-            throw new RuntimeException("user_id não encontrado no token. Campos disponíveis: " + 
-                payloadNode.fieldNames().toString());
+            throw new RuntimeException("user_id não encontrado no token. Claims disponíveis: " + 
+                claims.keySet().toString());
             
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar token JWT: " + e.getMessage());
@@ -73,32 +95,22 @@ public class JwtUtil {
                 // 1. Buscar o usuário pelo UUID na base de dados
                 // 2. Ou mapear o UUID para um Long
                 // Por enquanto, vamos gerar um hash do UUID para usar como Long
-                return (long) userIdString.hashCode();
+                return (long) Math.abs(userIdString.hashCode());
             } else {
                 throw new RuntimeException("user_id não é um número válido nem um UUID: " + userIdString);
             }
         }
     }
 
-    // Extrair username/email do token
+    // Extrair username/email do token usando JJWT
     public String extractUsername(String token) {
         try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-
-            String[] parts = token.split("\\.");
-            if (parts.length != 3) {
-                throw new RuntimeException("Token JWT inválido");
-            }
-
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            JsonNode payloadNode = objectMapper.readTree(payload);
+            Claims claims = extractAllClaims(token);
             
-            if (payloadNode.has("email")) {
-                return payloadNode.get("email").asText();
-            } else if (payloadNode.has("sub")) {
-                return payloadNode.get("sub").asText();
+            if (claims.containsKey("email")) {
+                return claims.get("email").toString();
+            } else if (claims.getSubject() != null) {
+                return claims.getSubject();
             }
             
             throw new RuntimeException("Username não encontrado no token");
@@ -108,52 +120,29 @@ public class JwtUtil {
         }
     }
 
-    // Verificar se o token expirou
+    // Verificar se o token expirou usando JJWT
     public boolean isTokenExpired(String token) {
         try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-
-            String[] parts = token.split("\\.");
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            JsonNode payloadNode = objectMapper.readTree(payload);
-            
-            if (payloadNode.has("exp")) {
-                long exp = payloadNode.get("exp").asLong();
-                return new Date(exp * 1000).before(new Date());
-            }
-            
-            return false; // Se não tem expiração, considera como não expirado
-            
+            Date expiration = extractClaim(token, Claims::getExpiration);
+            return expiration != null && expiration.before(new Date());
         } catch (Exception e) {
             return true; // Em caso de erro, considera como expirado
         }
     }
 
-    // Extrair user_id como String (para UUIDs)
+    // Extrair user_id como String (para UUIDs) usando JJWT
     public String extractUserIdAsString(String token) {
         try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-
-            String[] parts = token.split("\\.");
-            if (parts.length != 3) {
-                throw new RuntimeException("Token JWT inválido");
-            }
-
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            JsonNode payloadNode = objectMapper.readTree(payload);
+            Claims claims = extractAllClaims(token);
             
-            if (payloadNode.has("user_id")) {
-                return payloadNode.get("user_id").asText();
-            } else if (payloadNode.has("userId")) {
-                return payloadNode.get("userId").asText();
-            } else if (payloadNode.has("id")) {
-                return payloadNode.get("id").asText();
-            } else if (payloadNode.has("sub")) {
-                return payloadNode.get("sub").asText();
+            if (claims.containsKey("user_id")) {
+                return claims.get("user_id").toString();
+            } else if (claims.containsKey("userId")) {
+                return claims.get("userId").toString();
+            } else if (claims.containsKey("id")) {
+                return claims.get("id").toString();
+            } else if (claims.getSubject() != null) {
+                return claims.getSubject();
             }
             
             throw new RuntimeException("user_id não encontrado no token");
@@ -163,9 +152,13 @@ public class JwtUtil {
         }
     }
 
-    // Validar token
+    // Validar token com verificação de assinatura e expiração
     public boolean validateToken(String token) {
         try {
+            // Tentar extrair as claims - isso já valida a assinatura
+            extractAllClaims(token);
+            // Se chegou até aqui, o token é válido em termos de assinatura
+            // Agora verificar se não expirou
             return !isTokenExpired(token);
         } catch (Exception e) {
             return false;

@@ -11,6 +11,7 @@ import lombok.Data;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    /*
     @ExceptionHandler(StripeException.class)
     public ResponseEntity<ErrorResponse> handleStripeException(StripeException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -40,6 +41,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    */
 }
 
 // Classe auxiliar para a resposta de erro
