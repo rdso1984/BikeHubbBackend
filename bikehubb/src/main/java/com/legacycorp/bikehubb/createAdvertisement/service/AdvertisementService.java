@@ -264,8 +264,8 @@ public class AdvertisementService {
                                             String minPrice, String maxPrice, String condition, 
                                             String category, String brand, String sort) {
         
-        // Primeiro, vamos verificar se há dados no banco
-        List<Bicycle> allBicycles = advertisementRepository.findAllForTesting();
+        // Primeiro, vamos verificar se há dados no banco (SEM carregar imagens)
+        List<Bicycle> allBicycles = advertisementRepository.findAllForList();
         System.out.println("=== DADOS NO BANCO ===");
         System.out.println("Total de bicicletas no banco: " + allBicycles.size());
         

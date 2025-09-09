@@ -122,6 +122,7 @@ public class AdvertisementController {
     }
 
     @GetMapping("/search")
+    @Transactional(readOnly = true) // Manter sessão aberta durante a leitura
     public ResponseEntity<List<BicycleListResponseDTO>> searchAdvertisements(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestParam(value = "state", required = false) String state,
@@ -136,7 +137,7 @@ public class AdvertisementController {
         try {
             
             // Debug: Log dos parâmetros recebidos
-            System.out.println("=== BUSCA DE ANÚNCIOS ===");
+            System.out.println("=== BUSCA OTIMIZADA DE ANÚNCIOS ===");
             System.out.println("State: " + state);
             System.out.println("City: " + city);
             System.out.println("Neighborhood: " + neighborhood);
@@ -146,21 +147,31 @@ public class AdvertisementController {
             System.out.println("Category: " + category);
             System.out.println("Brand: " + brand);
             System.out.println("Sort: " + sort);
-            System.out.println("========================");
+            System.out.println("====================================");
             
             // Buscar anúncios com os filtros aplicados
             List<Bicycle> advertisements = advertisementService.searchAdvertisements(
                 state, city, neighborhood, minPrice, maxPrice, 
                 condition, category, brand, sort);
             
-            // Converter para DTO
+            System.out.println("Encontrados " + advertisements.size() + " anúncios filtrados");
+            
+            // Converter para DTO de forma otimizada (SEM carregar dados binários das imagens)
             List<BicycleListResponseDTO> response = advertisements.stream()
-                .map(BicycleListResponseDTO::fromBicycle)
+                .map(bicycle -> {
+                    // Buscar apenas metadados das imagens (SEM imageData)
+                    List<BikeImageSummaryDTO> imageSummaries = 
+                        bikeImageRepository.findImageSummariesByBicycleId(bicycle.getId());
+                    
+                    return BicycleListResponseDTO.fromBicycleOptimized(bicycle, imageSummaries);
+                })
                 .collect(Collectors.toList());
-                
+            
+            System.out.println("Conversão otimizada para DTO concluída");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Erro ao buscar anúncios: " + e.getMessage());
+            e.printStackTrace(); // Stack trace completo
             return ResponseEntity.badRequest().build();
         }
     }
