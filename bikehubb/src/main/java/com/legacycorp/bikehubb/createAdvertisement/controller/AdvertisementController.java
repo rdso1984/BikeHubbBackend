@@ -3,6 +3,7 @@ package com.legacycorp.bikehubb.createAdvertisement.controller;
 import com.legacycorp.bikehubb.createAdvertisement.dto.AdvertisementRequest;
 import com.legacycorp.bikehubb.createAdvertisement.dto.BicycleListResponseDTO;
 import com.legacycorp.bikehubb.createAdvertisement.dto.BikeImageSummaryDTO;
+import com.legacycorp.bikehubb.createAdvertisement.dto.UserAdvertisementResponseDTO;
 import com.legacycorp.bikehubb.createAdvertisement.service.AdvertisementService;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
 import com.legacycorp.bikehubb.createAdvertisement.repository.BikeImageRepository;
@@ -178,7 +179,7 @@ public class AdvertisementController {
 
     @GetMapping("/user")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<BicycleListResponseDTO>> getUserAdvertisements(
+    public ResponseEntity<List<UserAdvertisementResponseDTO>> getUserAdvertisements(
             @RequestHeader(value = "Authorization", required = true) String authHeader) {
         try {
             System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS DO USUÁRIO ===");
@@ -201,18 +202,18 @@ public class AdvertisementController {
             List<Bicycle> userAdvertisements = advertisementService.getUserAdvertisements(externalId);
             System.out.println("Encontrados " + userAdvertisements.size() + " anúncios do usuário");
             
-            // Converter para DTO de forma otimizada (SEM carregar dados binários das imagens)
-            List<BicycleListResponseDTO> response = userAdvertisements.stream()
+            // Converter para DTO específico do usuário com formato correto
+            List<UserAdvertisementResponseDTO> response = userAdvertisements.stream()
                 .map(bicycle -> {
                     // Buscar apenas metadados das imagens (SEM imageData)
                     List<BikeImageSummaryDTO> imageSummaries = 
                         bikeImageRepository.findImageSummariesByBicycleId(bicycle.getId());
                     
-                    return BicycleListResponseDTO.fromBicycleOptimized(bicycle, imageSummaries);
+                    return UserAdvertisementResponseDTO.fromBicycleOptimized(bicycle, externalId, imageSummaries);
                 })
                 .collect(Collectors.toList());
             
-            System.out.println("Conversão otimizada para DTO concluída");
+            System.out.println("Conversão otimizada para DTO do usuário concluída");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Erro ao buscar anúncios do usuário: " + e.getMessage());
