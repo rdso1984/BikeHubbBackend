@@ -248,6 +248,29 @@ public class AdvertisementService {
     }
     
     /**
+     * Busca anúncios de um usuário específico
+     * @param userId ID do usuário (extraído do token JWT)
+     * @return Lista de anúncios do usuário
+     */
+    public List<Bicycle> getUserAdvertisements(String externalId) {
+        try {
+            // Buscar o usuário pelo externalId
+            User user = userRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            
+            // Buscar anúncios do usuário
+            List<Bicycle> userAdvertisements = advertisementRepository.findByOwner(user.getId());
+            
+            System.out.println("Encontrados " + userAdvertisements.size() + " anúncios do usuário: " + user.getEmail());
+            
+            return userAdvertisements;
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar anúncios do usuário: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar anúncios do usuário", e);
+        }
+    }
+    
+    /**
      * Busca anúncios com filtros aplicados
      * @param state Estado
      * @param city Cidade  

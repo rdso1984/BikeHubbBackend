@@ -175,5 +175,50 @@ public class AdvertisementController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @GetMapping("/user")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<BicycleListResponseDTO>> getUserAdvertisements(
+            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        try {
+            System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS DO USUÁRIO ===");
+            
+            // Verificar se o header Authorization foi enviado
+            if (authHeader == null || authHeader.trim().isEmpty()) {
+                return ResponseEntity.status(401).body(null);
+            }
+            
+            // Validar token
+            if (!jwtUtil.validateToken(authHeader)) {
+                return ResponseEntity.status(401).body(null);
+            }
+            
+            // Extrair userId do token JWT como String (UUID)
+            String externalId = jwtUtil.extractUserIdAsString(authHeader);
+            System.out.println("ExternalId extraído do token: " + externalId);
+            
+            // Buscar anúncios do usuário
+            List<Bicycle> userAdvertisements = advertisementService.getUserAdvertisements(externalId);
+            System.out.println("Encontrados " + userAdvertisements.size() + " anúncios do usuário");
+            
+            // Converter para DTO de forma otimizada (SEM carregar dados binários das imagens)
+            List<BicycleListResponseDTO> response = userAdvertisements.stream()
+                .map(bicycle -> {
+                    // Buscar apenas metadados das imagens (SEM imageData)
+                    List<BikeImageSummaryDTO> imageSummaries = 
+                        bikeImageRepository.findImageSummariesByBicycleId(bicycle.getId());
+                    
+                    return BicycleListResponseDTO.fromBicycleOptimized(bicycle, imageSummaries);
+                })
+                .collect(Collectors.toList());
+            
+            System.out.println("Conversão otimizada para DTO concluída");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar anúncios do usuário: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+    }
     
 }
