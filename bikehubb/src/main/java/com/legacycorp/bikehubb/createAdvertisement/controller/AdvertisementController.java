@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
-
-
 
 @RestController
 @RequestMapping("/api/advertisements")
@@ -180,7 +180,7 @@ public class AdvertisementController {
     @GetMapping("/user")
     @Transactional(readOnly = true)
     public ResponseEntity<List<UserAdvertisementResponseDTO>> getUserAdvertisements(
-            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS DO USUÁRIO ===");
             
@@ -219,6 +219,66 @@ public class AdvertisementController {
             System.err.println("Erro ao buscar anúncios do usuário: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    /**
+     * Exclui um anúncio do usuário autenticado
+     * @param advertisementId ID do anúncio a ser excluído
+     * @param authHeader Token JWT de autenticação
+     * @return Resposta de sucesso ou erro
+     */
+    @DeleteMapping("/exclude-advertisement")
+    @Transactional
+    public ResponseEntity<Map<String, String>> deleteUserAdvertisement(
+            @RequestParam("id") String advertisementId,
+            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        
+        try {
+            System.out.println("=== INICIANDO EXCLUSÃO DE ANÚNCIO ===");
+            System.out.println("Advertisement ID recebido: " + advertisementId);
+            
+            // Verificar se o header Authorization foi enviado
+            if (authHeader == null || authHeader.trim().isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Token de autenticação é obrigatório"));
+            }
+            
+            // Validar token
+            if (!jwtUtil.validateToken(authHeader)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Token inválido ou expirado"));
+            }
+            
+            // Extrair userId do token JWT como String (UUID)
+            String externalId = jwtUtil.extractUserIdAsString(authHeader);
+            System.out.println("ExternalId extraído do token: " + externalId);
+            
+            // Converter string para UUID
+            UUID advertisementUuid;
+            try {
+                advertisementUuid = UUID.fromString(advertisementId);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "ID do anúncio inválido"));
+            }
+            
+            // Excluir o anúncio
+            boolean deleted = advertisementService.deleteUserAdvertisement(advertisementUuid, externalId);
+            
+            if (deleted) {
+                return ResponseEntity.ok(Map.of(
+                    "message", "Anúncio excluído com sucesso!",
+                    "advertisementId", advertisementId
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error", "Erro ao excluir anúncio"));
+            }
+            
+        } catch (RuntimeException e) {
+            System.err.println("Erro de negócio ao excluir anúncio: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Erro inesperado ao excluir anúncio: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Erro interno do servidor"));
         }
     }
     

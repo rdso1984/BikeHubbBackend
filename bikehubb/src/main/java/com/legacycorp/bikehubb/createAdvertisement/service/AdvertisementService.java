@@ -452,4 +452,44 @@ public class AdvertisementService {
     public Bicycle renewAdvertisementExpiration(UUID advertisementId) {
         return renewAdvertisementExpiration(advertisementId, 60);
     }
+
+    /**
+     * Exclui um anúncio do usuário
+     * @param advertisementId ID do anúncio a ser excluído
+     * @param externalId ID externo do usuário (extraído do token JWT)
+     * @return true se excluído com sucesso
+     * @throws RuntimeException se anúncio não encontrado ou usuário não é o proprietário
+     */
+    public boolean deleteUserAdvertisement(UUID advertisementId, String externalId) {
+        try {
+            System.out.println("=== INICIANDO EXCLUSÃO DE ANÚNCIO ===");
+            System.out.println("Advertisement ID: " + advertisementId);
+            System.out.println("User External ID: " + externalId);
+            
+            // Buscar o usuário pelo externalId
+            User user = userRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            
+            // Buscar o anúncio
+            Bicycle advertisement = advertisementRepository.findById(advertisementId)
+                .orElseThrow(() -> new RuntimeException("Anúncio não encontrado"));
+            
+            // Verificar se o usuário é o proprietário do anúncio
+            if (!advertisement.getOwner().equals(user.getId())) {
+                throw new RuntimeException("Usuário não tem permissão para excluir este anúncio");
+            }
+            
+            System.out.println("Usuário autorizado. Excluindo anúncio: " + advertisement.getTitle());
+            
+            // Excluir o anúncio (cascata vai excluir as imagens automaticamente)
+            advertisementRepository.delete(advertisement);
+            
+            System.out.println("Anúncio excluído com sucesso!");
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao excluir anúncio: " + e.getMessage());
+            throw new RuntimeException("Erro ao excluir anúncio: " + e.getMessage(), e);
+        }
+    }
 }
