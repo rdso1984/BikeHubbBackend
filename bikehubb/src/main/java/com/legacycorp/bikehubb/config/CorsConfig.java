@@ -33,11 +33,13 @@ public class CorsConfig implements WebMvcConfigurer {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // URLs específicas permitidas
-        configuration.addAllowedOrigin("https://bikehubb.netlify.app");
-        configuration.addAllowedOrigin("http://localhost:3000");
-        configuration.addAllowedOrigin("http://localhost:3001");
-        configuration.addAllowedOrigin("http://localhost:4200");
+        // Usar allowedOriginPatterns em vez de allowedOrigins para maior flexibilidade
+        configuration.addAllowedOriginPattern("https://bikehubb.netlify.app");
+        configuration.addAllowedOriginPattern("https://bikehubbbackend.onrender.com");
+        configuration.addAllowedOriginPattern("http://localhost:3000");
+        configuration.addAllowedOriginPattern("http://localhost:3001");
+        configuration.addAllowedOriginPattern("http://localhost:4200");
+        configuration.addAllowedOriginPattern("http://localhost:4201");
         
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");

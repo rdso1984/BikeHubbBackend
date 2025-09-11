@@ -9,7 +9,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {"*"}) // Temporário para teste
+@CrossOrigin(origins = {
+    "https://bikehubb.netlify.app",
+    "https://bikehubbbackend.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:4200",
+    "http://localhost:4201"
+}, allowCredentials = "true")
 public class InfoController {
 
     @Value("${server.port:8080}")

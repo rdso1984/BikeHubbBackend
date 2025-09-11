@@ -13,7 +13,14 @@ import java.util.List;
 @RequestMapping("/api/bicycles")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = {
+    "https://bikehubb.netlify.app",
+    "https://bikehubbbackend.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:4200",
+    "http://localhost:4201"
+}, allowCredentials = "true")
 public class BicycleController {
 
     private final BicycleService bicycleService;
