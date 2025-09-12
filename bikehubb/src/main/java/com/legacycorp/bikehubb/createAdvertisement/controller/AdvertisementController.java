@@ -183,24 +183,33 @@ public class AdvertisementController {
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             System.out.println("=== INICIANDO BUSCA DE ANÚNCIOS DO USUÁRIO ===");
+            System.out.println("Request Headers recebidos:");
+            System.out.println("Authorization header presente: " + (authHeader != null ? "SIM" : "NÃO"));
             
             // Verificar se o header Authorization foi enviado
             if (authHeader == null || authHeader.trim().isEmpty()) {
+                System.err.println("❌ Header Authorization não fornecido");
                 return ResponseEntity.status(401).body(null);
             }
             
+            System.out.println("Authorization header: " + authHeader.substring(0, Math.min(30, authHeader.length())) + "...");
+            
             // Validar token
-            if (!jwtUtil.validateToken(authHeader)) {
+            boolean tokenValid = jwtUtil.validateToken(authHeader);
+            System.out.println("Token válido: " + tokenValid);
+            
+            if (!tokenValid) {
+                System.err.println("❌ Token JWT inválido");
                 return ResponseEntity.status(401).body(null);
             }
             
             // Extrair userId do token JWT como String (UUID)
             String externalId = jwtUtil.extractUserIdAsString(authHeader);
-            System.out.println("ExternalId extraído do token: " + externalId);
+            System.out.println("✅ ExternalId extraído do token: " + externalId);
             
             // Buscar anúncios do usuário
             List<Bicycle> userAdvertisements = advertisementService.getUserAdvertisements(externalId);
-            System.out.println("Encontrados " + userAdvertisements.size() + " anúncios do usuário");
+            System.out.println("✅ Service retornou " + userAdvertisements.size() + " anúncios");
             
             // Converter para DTO específico do usuário com formato correto
             List<UserAdvertisementResponseDTO> response = userAdvertisements.stream()

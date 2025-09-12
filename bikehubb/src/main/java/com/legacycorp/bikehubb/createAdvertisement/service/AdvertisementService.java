@@ -3,6 +3,7 @@ package com.legacycorp.bikehubb.createAdvertisement.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,18 +255,60 @@ public class AdvertisementService {
      */
     public List<Bicycle> getUserAdvertisements(String externalId) {
         try {
+            System.out.println("=== DIAGNÓSTICO DETALHADO ===");
+            System.out.println("1. ExternalId recebido: " + externalId);
+            
+            // Verificar quantos usuários existem na tabela
+            long totalUsers = userRepository.count();
+            System.out.println("2. Total de usuários na tabela: " + totalUsers);
+            
+            // Listar alguns usuários para debug (apenas em desenvolvimento)
+            List<User> allUsers = userRepository.findAll();
+            System.out.println("3. Primeiros usuários encontrados:");
+            allUsers.stream().limit(3).forEach(u -> 
+                System.out.println("   - ID: " + u.getId() + ", Email: " + u.getEmail() + ", ExternalId: " + u.getExternalId())
+            );
+            
             // Buscar o usuário pelo externalId
-            User user = userRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            System.out.println("4. Buscando usuário pelo externalId: " + externalId);
+            Optional<User> userOpt = userRepository.findByExternalId(externalId);
+            
+            if (userOpt.isEmpty()) {
+                System.err.println("❌ USUÁRIO NÃO ENCONTRADO com externalId: " + externalId);
+                
+                // Verificar se existe usuário com esse externalId mas com case diferente
+                System.out.println("5. Verificando todos os externalIds para comparação:");
+                allUsers.forEach(u -> {
+                    if (u.getExternalId() != null) {
+                        System.out.println("   - ExternalId na base: '" + u.getExternalId() + "' vs Token: '" + externalId + "'");
+                        if (u.getExternalId().equalsIgnoreCase(externalId)) {
+                            System.out.println("   ⚠️  MATCH CASE-INSENSITIVE ENCONTRADO!");
+                        }
+                    }
+                });
+                
+                return List.of(); // Retorna lista vazia em vez de exception para debug
+            }
+            
+            User user = userOpt.get();
+            System.out.println("✅ Usuário encontrado: " + user.getEmail() + " (ID interno: " + user.getId() + ")");
             
             // Buscar anúncios do usuário
             List<Bicycle> userAdvertisements = advertisementRepository.findByOwner(user.getId());
+            System.out.println("6. Anúncios encontrados: " + userAdvertisements.size());
             
-            System.out.println("Encontrados " + userAdvertisements.size() + " anúncios do usuário: " + user.getEmail());
+            if (!userAdvertisements.isEmpty()) {
+                userAdvertisements.forEach(ad -> 
+                    System.out.println("   - Anúncio: " + ad.getTitle() + " (ID: " + ad.getId() + ")")
+                );
+            }
             
+            System.out.println("=== FIM DO DIAGNÓSTICO ===");
             return userAdvertisements;
+            
         } catch (Exception e) {
-            System.err.println("Erro ao buscar anúncios do usuário: " + e.getMessage());
+            System.err.println("❌ ERRO no getUserAdvertisements: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Erro ao buscar anúncios do usuário", e);
         }
     }
