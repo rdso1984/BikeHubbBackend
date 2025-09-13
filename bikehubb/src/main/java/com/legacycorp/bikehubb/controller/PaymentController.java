@@ -100,11 +100,12 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Usuário não é o proprietário deste anúncio"));
             }
             
-            // Definir valores do pagamento
-            BigDecimal amount = advertisement.getPrice(); // Preço do anúncio
-            long amountInCents = amount.multiply(new BigDecimal("100")).longValue(); // Converter para centavos
+            // Definir valores do pagamento - VALOR FIXO de R$ 3,00 para publicação
+            BigDecimal amount = new BigDecimal("3.00"); // Valor fixo para publicação de anúncio
+            long amountInCents = amount.multiply(new BigDecimal("100")).longValue(); // Converter para centavos (300 centavos)
             
             System.out.println("💰 Valor do pagamento: R$ " + amount + " (" + amountInCents + " centavos)");
+            System.out.println("📋 Preço original da bicicleta: R$ " + advertisement.getPrice() + " (apenas para referência)");
             
             // Criar sessão de checkout do Stripe
             SessionCreateParams params = SessionCreateParams.builder()
