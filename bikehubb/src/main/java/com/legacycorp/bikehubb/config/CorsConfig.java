@@ -20,6 +20,7 @@ public class CorsConfig implements WebMvcConfigurer {
                     "http://localhost:4200",
                     "http://localhost:4201",
                     "https://bikehubb.netlify.app",  // Seu frontend no Netlify
+                    "https://bikehubbfrontend.netlify.app",  // Frontend atualizado
                     "https://bikehubbbackend.onrender.com"  // Seu backend no Render
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
@@ -35,6 +36,7 @@ public class CorsConfig implements WebMvcConfigurer {
         
         // Usar allowedOriginPatterns em vez de allowedOrigins para maior flexibilidade
         configuration.addAllowedOriginPattern("https://bikehubb.netlify.app");
+        configuration.addAllowedOriginPattern("https://bikehubbfrontend.netlify.app");
         configuration.addAllowedOriginPattern("https://bikehubbbackend.onrender.com");
         configuration.addAllowedOriginPattern("http://localhost:3000");
         configuration.addAllowedOriginPattern("http://localhost:3001");

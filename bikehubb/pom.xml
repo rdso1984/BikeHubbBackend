@@ -75,11 +75,11 @@
 		</dependency>
 
 		 <!-- Stripe Java SDK -->
-		<!-- <dependency>
+		<dependency>
 			<groupId>com.stripe</groupId>
 			<artifactId>stripe-java</artifactId>
-			<version>24.4.0</version>
-		</dependency> -->
+			<version>24.10.0</version>
+		</dependency>
 
 		<!-- JWT dependencies -->
 		<dependency>
