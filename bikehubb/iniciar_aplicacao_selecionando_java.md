@@ -1,0 +1,2 @@
+## 🔍 **Executar a aplicação selecionando a versão do Java e não alterar configurações gerais do sistema:**
+$env:JAVA_HOME="E:\JAVA\jdk-21_windows-x64_bin\jdk-21.0.6"; $env:Path="$env:JAVA_HOME\bin;$env:Path"; mvn clean package -DskipTests

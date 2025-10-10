@@ -1,5 +1,23 @@
 package com.legacycorp.bikehubb.service;
 
+/*
+ * STRIPE SERVICE DESABILITADO TEMPORARIAMENTE
+ * Este serviço será reabil            return response;
+            
+        } catch (StripeException e) {
+            System.err.println("❌ Erro do Stripe: " + e.getMessage());
+            throw new RuntimeException("Erro ao criar sessão de pagamento: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("❌ Erro inesperado: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Erro interno do servidor");
+        }
+    }
+}
+*/ implementarmos o sistema de pagamentos
+ */
+
+/*
 import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentRequest;
 import com.legacycorp.bikehubb.createAdvertisement.dto.PaymentResponse;
 import com.legacycorp.bikehubb.createAdvertisement.model.Bicycle;
