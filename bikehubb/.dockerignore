@@ -1,14 +1,14 @@
 # Arquivos desnecessários para build Docker
 target/
-.mvn/
 *.md
 *.bat
-*.sh
 .git/
 .gitignore
 .vscode/
 .idea/
 *.iml
+
+# IMPORTANTE: NÃO excluir .mvn/ e mvnw - são necessários para o build!
 
 # Logs
 *.log
@@ -22,7 +22,15 @@ application-local.properties
 application-ipv4.properties
 application-direct-ipv6.properties
 
-# Scripts de desenvolvimento
+# Scripts de desenvolvimento (exceto mvnw)
 run-*.bat
 test-*.bat
 verify-*.bat
+start*.bat
+debug*.bat
+deploy*.bat
+*.ps1
+
+# Dockerfiles não usados
+Dockerfile.bak
+Dockerfile.root.bak

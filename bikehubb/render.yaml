@@ -1,15 +1,17 @@
 services:
   - type: web
     name: bikehubb-api
-    env: java
-    runtime: java
+    env: docker
     plan: free
-    # IMPORTANTE: Não usar Docker - usar buildpack nativo
-    buildCommand: ./mvnw clean package -DskipTests
-    startCommand: java -jar target/bikehubb-*.jar --spring.profiles.active=render
-    # Força uso do buildpack Heroku em vez de Docker
+    # Render usa Dockerfile automaticamente para Java (não suportado nativamente)
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
       - key: PORT
         value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
