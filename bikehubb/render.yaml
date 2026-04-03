@@ -4,9 +4,10 @@ services:
     env: java
     runtime: java
     plan: free
+    # IMPORTANTE: Não usar Docker - usar buildpack nativo
     buildCommand: ./mvnw clean package -DskipTests
     startCommand: java -jar target/bikehubb-*.jar --spring.profiles.active=render
-    buildpack: heroku/java
+    # Força uso do buildpack Heroku em vez de Docker
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
