@@ -80,6 +80,8 @@ Se houver erro, você verá mensagens detalhadas com o problema.
 
 ## 🐛 Comandos de Build/Deploy
 
+### Build Atual (Usando Buildpack Java - RECOMENDADO para Render Free)
+
 O Render executará automaticamente:
 
 **Build:**
@@ -92,7 +94,32 @@ O Render executará automaticamente:
 java -jar target/bikehubb-*.jar --spring.profiles.active=render
 ```
 
+### ℹ️ Sobre os Dockerfiles no Projeto
+
+O projeto possui 3 arquivos Dockerfile:
+
+1. **`Dockerfile.bak`** (renomeado, não usado) - Build Docker simples
+2. **`Dockerfile.root`** - Build Docker para quando o contexto é a pasta pai
+3. **Nenhum `Dockerfile` ativo** - Forçando uso do buildpack Java
+
+**Por que não usar Docker no Render Free?**
+- O .dockerignore exclui arquivos necessários (mvnw, .mvn/)
+- O buildpack Java é otimizado para o plano free
+- Menor uso de recursos e build mais rápido
+- Menor chance de erros de dependências
+
+**Quando usar Docker?**
+- Deploy em outras plataformas (Railway, Fly.io, etc.)
+- Planos pagos do Render com mais recursos
+- Necessidade de customização específica do ambiente
+
 ## ⚠️ Troubleshooting
+
+### Erro: "The goal you specified requires a project to execute but there is no POM in this directory"
+- **Causa:** O Render está tentando usar o Dockerfile em vez do buildCommand do render.yaml
+- **Solução:** ✅ **RESOLVIDO** - O Dockerfile foi renomeado para `Dockerfile.bak`
+- **Explicação:** Quando o Render detecta um Dockerfile, ele o usa automaticamente ignorando o buildpack Java configurado no render.yaml. O .dockerignore estava excluindo arquivos essenciais (mvnw, .mvn/).
+- **Importante:** NÃO renomeie o Dockerfile de volta para "Dockerfile" ou o erro retornará!
 
 ### Erro: "Could not resolve placeholder"
 - **Causa:** Variável de ambiente não configurada
