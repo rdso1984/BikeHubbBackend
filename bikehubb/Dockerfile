@@ -1,4 +1,5 @@
 # Multi-stage build para Render - Java 21
+# Updated: 2026-04-15
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /build
